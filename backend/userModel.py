@@ -74,3 +74,23 @@ def VerificaLoginUsuario(email: str, SenhaSimples: str):
     # remove o hash do objeto para segurança
     usuario.pop("senha", None)
     return True, {"usuario": usuario, "novaHash": NovaHash}
+
+#Função para atualizar o hash
+def AtualizaHashSenha(id_usuari0: int, new_hash: str):
+    conn = None
+    try:
+        conn = DBConexao()
+        if not conn:
+            return False
+        cursor = conn.cursor()
+        sql = "UPDATE usuarios SET senha = %s, dt_alteracao = NOW() WHERE id_usuarios = %s"
+        cursor.execute(sql, (new_hash, id_usuari0))
+        conn.commit()
+        cursor.close()
+        return True
+    except Exception as e:
+        print("[userModel] Erro AtualizarHashSenha:", e)
+        return False
+    finally:
+        if conn and getattr(conn, "is_connected", lambda: False)():
+            conn.close()

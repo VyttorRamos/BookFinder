@@ -73,6 +73,10 @@ p {
     margin-bottom: 40px;
 }
 
+#senha{
+
+}
+
 /* --- ESTILOS DO CONTEÚDO DA PÁGINA INICIAL --- */
 
 .search-container {
@@ -250,6 +254,7 @@ p {
 
 .form-group input[type="text"],
 .form-group input[type="email"],
+.form-group input[type="password"],
 .form-group textarea {
     width: 100%;
     padding: 12px;
