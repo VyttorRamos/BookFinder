@@ -1,17 +1,16 @@
 from flask_jwt_extended import (JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity)
 from datetime import timedelta
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-import os
 import mysql.connector
-from mysql.connector import Error #tratamento de erros
+from mysql.connector import Error
 from userModel import CadastroUser, PegaUserPorEmail, VerificaLoginUsuario
 
-load_dotenv()  # carrega as variáveis do .env
+load_dotenv()
 
-app = Flask(__name__) #Instancia a aplicação Flask
+app = Flask(__name__)
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "muda_essa_chave")
 AcessoExpirado = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 900))
@@ -21,8 +20,42 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(seconds=RefreshExpirado)
 
 jwt = JWTManager(app)
 
-CORS(app) #acesso ao front
+CORS(app)
 
+# Rotas de páginas HTML
+@app.route("/", methods=["GET"])
+def home():
+    return render_template('index.html')
+
+@app.route("/generos", methods=["GET"])
+def generos():
+    return render_template('generos.html')
+
+@app.route("/sobre", methods=["GET"])
+def sobre():
+    return render_template('sobre.html')
+
+@app.route("/contato", methods=["GET"])
+def contato():
+    return render_template('contato.html')
+
+@app.route("/login", methods=["GET"])
+def login():
+    return render_template('login.html')
+
+@app.route("/register", methods=["GET"])
+def register():
+    return render_template('register.html')
+
+@app.route("/privacidade", methods=["GET"])
+def privacidade():
+    return render_template('privacidade.html')
+
+@app.route("/termos", methods=["GET"])
+def termos():
+    return render_template('termos.html')
+
+# Rotas API
 @app.route("/auth/register", methods=["POST"])
 def route_register():
     data = request.json or {}
@@ -37,7 +70,7 @@ def route_register():
 
     ok, res = CadastroUser(nome, email, senha, telefone=telefone, tipo_usuario=tipo)
     if not ok:
-        return jsonify({"error": res}), 409 #res é a mensagem de erro
+        return jsonify({"error": res}), 409
     
     return jsonify({"message": "Usuário criado", "id_usuario": res}), 201
 
@@ -47,38 +80,32 @@ def route_login():
     email = data.get("email")
     senha = data.get("senha")
 
-    if not email or  not senha:
+    if not email or not senha:
         return jsonify({"error": "email e senha são obrigatórios"}), 400
     
     ok, res = VerificaLoginUsuario(email, senha)
     if not ok:
         return jsonify({"error": res}), 401
     
-    #res esperado: nova_hash = none or novo_hash
     user = res.get("usuario")
-    novaHash = res.get("novahash") or res.get("nova_hash") or res.get("new_hash")
+    novaHash = res.get("novaHash")
 
     if novaHash:
         try: 
             from userModel import AtualizaHashSenha
             AtualizaHashSenha(user["id_usuario"], novaHash)
-        except Exception:
-            print("Aviso: novaHash disponivel mas não foi possivel atualizar no DB")
+        except Exception as e:
+            print(f"Aviso: novaHash disponivel mas não foi possivel atualizar no DB: {e}")
 
-#criar tokens
     identity = {"id_usuario": user["id_usuario"], "email": user["email"], "tipo": user.get("tipo_usuario")}
     access_token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
 
     return jsonify({
-        "acess_token": access_token,
+        "access_token": access_token,
         "refresh_token": refresh_token,
         "user": user
     }), 200
-
-@app.route("/", methods=["GET"]) #registra uma rota HTTP GET no caminho /
-def home():
-    return jsonify({"message": "API Book"})
 
 @app.route("/books", methods=["GET"])
 def get_books():
@@ -88,6 +115,6 @@ def get_books():
     ]
     return jsonify(books)
 
-if __name__ == "__main__": #significa que executa o código apenas se esse arquivo for executado diretamente
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="127.0.0.1", port=port, debug=True)

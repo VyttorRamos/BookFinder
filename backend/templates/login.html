@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="css/style.css">
-    <title>Gêneros - BookFinder</title>
-    <link rel="icon" type="image/png" href="img/BookFinderIcon.png" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Login - BookFinder</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
 </head>
 <body>
     <main>
         <h1>Bem-vindo ao BookFinder!</h1>
-        <p>Realize o login ou registre-se <a href="register.html">aqui</a>!</p>
+        <p>Realize o login ou registre-se <a href="/register">aqui</a>!</p>
         <div class="contact-container">
             <form action="#" method="POST">
                 <div class="form-group">
@@ -21,10 +21,10 @@
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" name="senha" required>
                 </div>
-                <button type="submit" onclick="Login()">Entrar</button>
+                <button type="submit">Entrar</button>
             </form>
         </div>
     </main>
 </body>
-<script src="js/main.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

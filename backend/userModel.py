@@ -2,7 +2,6 @@ from configDB import DBConexao
 from mysql.connector import Error
 from auth.auth_utils import SenhaHash, VerificaSenha
 
-#Retorna o usuário ou None se não existir 
 def PegaUserPorEmail(email: str):
     conn = None
     try:
@@ -20,13 +19,12 @@ def PegaUserPorEmail(email: str):
         cursor.close()
         return user
     except Exception as e:
-        #print(f"[PegaUserPorEmail] ERRO: {e}")
+        print(f"[PegaUserPorEmail] ERRO: {e}")
         return None
     finally:
-        if conn and getattr(conn, "is_connected", lambda: False)():
+        if conn and conn.is_connected():
             conn.close()
 
-#Tenta criar um usuário e retorna true, id_usuario em sucesso ou false, mensagem de erro em falha
 def CadastroUser(nome_completo: str, email: str, plain_password: str,
                  telefone: str = None, tipo_usuario: str = "aluno"):
     conn = None
@@ -52,39 +50,37 @@ def CadastroUser(nome_completo: str, email: str, plain_password: str,
         cursor.close()
         return True, user_id
     except Exception as e:
-        #não vaza mensagem sensivel
         print(f"[CadastroUser] ERRO: {e}")
         return False, "Erro ao criar usuário"
     finally:
-        if conn and getattr(conn, "is_connected", lambda: False)():
+        if conn and conn.is_connected():
             conn.close()
 
-
-#retorna true, user se correto e retorna false, mensagem se incorreto ou erro 
 def VerificaLoginUsuario(email: str, SenhaSimples: str):
     usuario = PegaUserPorEmail(email)
     if not usuario:
         return False, "Credenciais inválidas"
 
     SenhaArmazenada = usuario.get("senha")
+    
+    # Verifica senha com Argon2
     Valido, NovaHash = VerificaSenha(SenhaArmazenada, SenhaSimples)
     if not Valido:
         return False, "Credenciais inválidas"
 
-    # remove o hash do objeto para segurança
+    # Remove o hash do objeto para segurança
     usuario.pop("senha", None)
     return True, {"usuario": usuario, "novaHash": NovaHash}
 
-#Função para atualizar o hash
-def AtualizaHashSenha(id_usuari0: int, new_hash: str):
+def AtualizaHashSenha(id_usuario: int, new_hash: str):
     conn = None
     try:
         conn = DBConexao()
         if not conn:
             return False
         cursor = conn.cursor()
-        sql = "UPDATE usuarios SET senha = %s, dt_alteracao = NOW() WHERE id_usuarios = %s"
-        cursor.execute(sql, (new_hash, id_usuari0))
+        sql = "UPDATE usuarios SET senha = %s, dt_alteracao = NOW() WHERE id_usuario = %s"
+        cursor.execute(sql, (new_hash, id_usuario))
         conn.commit()
         cursor.close()
         return True
@@ -92,5 +88,5 @@ def AtualizaHashSenha(id_usuari0: int, new_hash: str):
         print("[userModel] Erro AtualizarHashSenha:", e)
         return False
     finally:
-        if conn and getattr(conn, "is_connected", lambda: False)():
+        if conn and conn.is_connected():
             conn.close()
