@@ -55,6 +55,10 @@ def privacidade():
 def termos():
     return render_template('termos.html')
 
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template('dashboard.html')
+
 # Rotas API
 @app.route("/auth/register", methods=["POST"])
 def route_register():
@@ -89,6 +93,17 @@ def route_login():
     
     user = res.get("usuario")
     novaHash = res.get("novaHash")
+    is_admin = res.get("is_admin", False)
+
+    identity = {
+        "id_usuario": user["id_usuario"],
+        "email": user["email"],
+        "tipo": user.get("tipo_usuario"),
+        "is_admin": is_admin
+    }
+
+    access_token = create_access_token(identity=identity)
+    refresh_token = create_refresh_token(identity=identity)
 
     if novaHash:
         try: 
@@ -97,15 +112,13 @@ def route_login():
         except Exception as e:
             print(f"Aviso: novaHash disponivel mas não foi possivel atualizar no DB: {e}")
 
-    identity = {"id_usuario": user["id_usuario"], "email": user["email"], "tipo": user.get("tipo_usuario")}
-    access_token = create_access_token(identity=identity)
-    refresh_token = create_refresh_token(identity=identity)
-
     return jsonify({
         "access_token": access_token,
         "refresh_token": refresh_token,
-        "user": user
+        "user": user,
+        "is_admin": is_admin
     }), 200
+
 
 @app.route("/books", methods=["GET"])
 def get_books():

@@ -47,7 +47,7 @@ function carregarFooter() {
 function configurarBusca() {
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
+        searchForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const searchTerm = document.getElementById('search-input').value.trim();
             if (searchTerm) {
@@ -125,6 +125,7 @@ async function Login(e) {
     e.preventDefault();
     const email = document.getElementById('email')?.value?.trim();
     const senha = document.getElementById('senha')?.value;
+
     if (!email || !senha) {
         MostrarMensagem('Preencha email e senha.', true);
         return;
@@ -138,6 +139,7 @@ async function Login(e) {
         });
 
         const json = await res.json();
+
         if (res.ok) {
             if (json.access_token) {
                 localStorage.setItem('bf_access', json.access_token);
@@ -146,15 +148,24 @@ async function Login(e) {
             localStorage.setItem('bf_last_email', email);
 
             MostrarMensagem('Login realizado com sucesso.');
-            setTimeout(() => window.location.href = '/', 700);
+
+            //Verifica se o usuário é admin
+            if (json.user && json.user.tipo_usuario === 'admin') {
+                setTimeout(() => window.location.href = '/dashboard', 700);
+            } else {
+                setTimeout(() => window.location.href = '/', 700);
+            }
+
         } else {
             MostrarMensagem(json.error || json.message || 'Credenciais inválidas', true);
         }
+
     } catch (err) {
         console.error(err);
         MostrarMensagem('Erro de rede ao logar. Verifique o backend e CORS.', true);
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // register form

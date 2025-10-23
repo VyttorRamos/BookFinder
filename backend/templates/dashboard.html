@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>Contato - BookFinder</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+</head>
+<body>
+    <main>
+        <h1>Dashboard Admin</h1>
+        <p>Selecione o que deseja fazer no sistema:</p>
+        <div class="genre-grid">
+            <div class="genre-card"><h3>Usuários do sistema</h3></div>
+            <div class="genre-card"><h3>Livros</h3></div>
+            <div class="genre-card"><h3>Gêneros</h3></div>
+        </div>
+    </main>
+</body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</html>
