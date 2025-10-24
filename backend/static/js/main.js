@@ -184,3 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (last) document.getElementById('email').value = last;
     }
 });
+
+function navigatePage() {
+      const select = document.getElementById('menuDropdown');
+      const url = select.value;
+      if (url) {
+        window.location.href = url;
+      }
+    }

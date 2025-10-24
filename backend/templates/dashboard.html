@@ -1,22 +1,63 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <title>Contato - BookFinder</title>
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Admin - BookFinder</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
 </head>
+
 <body>
     <main>
         <h1>Dashboard Admin</h1>
         <p>Selecione o que deseja fazer no sistema:</p>
         <div class="genre-grid">
-            <div class="genre-card"><h3>Usuários do sistema</h3></div>
-            <div class="genre-card"><h3>Livros</h3></div>
-            <div class="genre-card"><h3>Gêneros</h3></div>
+            <div class="genre-card">
+                <h3>Usuários</h3><br>
+                <h3><select id="menuDropdown" onchange="navigatePage()">
+                        <option value="/usuarios">Cadastrar</option>
+                        <option value="/livros">Editar</option>
+                        <option value="/generos">Excluir</option>
+                    </select></h3>
+            </div>
+            <div class="genre-card">
+                <h3>Livros</h3><br>
+                <h3><select id="menuDropdown" onchange="navigatePage()">
+                        <option value="/usuarios">Cadastrar</option>
+                        <option value="/livros">Editar</option>
+                        <option value="/generos">Excluir</option>
+                        <option value="/generos">Histórico</option>
+                    </select></h3>
+            </div>
+            <div class="genre-card">
+                <h3>Gêneros</h3><br>
+                <h3><select id="menuDropdown" onchange="navigatePage()">
+                        <option value="/usuarios">Cadastrar</option>
+                        <option value="/livros">Editar</option>
+                        <option value="/generos">Excluir</option>
+                    </select></h3>
+            </div>
+            <div class="genre-card">
+                <h3>Emprestimos</h3><br>
+                <h3><select id="menuDropdown" onchange="navigatePage()">
+                        <option value="/usuarios">Emprestrar</option>
+                        <option value="/livros">Devolução</option>
+                        <option value="/generos">Renovação</option>
+                        <option value="/generos">Atrasados</option>
+                    </select></h3>
+            </div>
+            <div class="genre-card">
+                <h3>Multas</h3><br>
+                <h3><select id="menuDropdown" onchange="navigatePage()">
+                        <option value="/usuarios">Acompanhar</option>
+                        <option value="/livros">Remover Multa</option>
+                    </select></h3>
+            </div>
         </div>
     </main>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </html>
