@@ -22,7 +22,7 @@ jwt = JWTManager(app)
 
 CORS(app)
 
-# Rotas de páginas HTML
+# rotas de HTML
 @app.route("/", methods=["GET"])
 def home():
     return render_template('index.html')
@@ -58,6 +58,84 @@ def termos():
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
     return render_template('dashboard.html')
+
+
+# ---------------- USUÁRIOS ----------------
+@app.route("/listaruser")
+def listaruser():
+    return render_template('usuarios/listaruser.html')
+
+@app.route("/editaruser")
+def editaruser():
+    return render_template('usuarios/editaruser.html')
+
+@app.route("/excluiruser")
+def excluiruser():
+    return render_template('usuarios/excluiruser.html')
+
+
+# ---------------- LIVROS ----------------
+@app.route("/listarlivro", methods=["GET"])
+def listarlivro():
+    return render_template('livros/listarlivro.html')
+
+@app.route("/cadastrarlivro")
+def cadastrarlivro():
+    return render_template('livros/cadastrarlivro.html')
+
+@app.route("/editarlivro")
+def editarlivro():
+    return render_template('livros/editarlivro.html')
+
+@app.route("/excluirlivro")
+def excluirlivro():
+    return render_template('livros/excluirlivro.html')
+
+
+    # ---------------- GÊNEROS ----------------
+@app.route("/listargeneros")
+def listargeneros():
+    return render_template('generos/listargeneros.html')
+
+@app.route("/cadastrargeneros")
+def cadastrargeneros():
+    return render_template('generos/cadastrargeneros.html')
+
+@app.route("/editargeneros")
+def editargeneros():
+    return render_template('generos/editargeneros.html')
+
+@app.route("/excluirgeneros")
+def excluirgeneros():
+    return render_template('generos/excluirgeneros.html')
+
+
+    # ---------------- EMPRESTIMOS ----------------
+@app.route("/emprestar")
+def emprestar():
+    return render_template('emprestimos/emprestar.html')
+
+@app.route("/devolver")
+def devolver():
+    return render_template('emprestimos/devolver.html')
+
+@app.route("/renovar")
+def renovar():
+    return render_template('emprestimos/renovar.html')
+
+@app.route("/listaratrasados")
+def listaratrasados():
+    return render_template('emprestimos/listaratrasados.html')
+
+
+    # ---------------- MULTAS ----------------
+@app.route("/listarmulta")
+def listarmulta():
+    return render_template('multas/listarmulta.html')
+
+@app.route("/removermulta")
+def removermulta():
+    return render_template('multas/removermulta.html')
 
 # Rotas API
 @app.route("/auth/register", methods=["POST"])

@@ -185,10 +185,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function navigatePage() {
-      const select = document.getElementById('menuDropdown');
-      const url = select.value;
-      if (url) {
-        window.location.href = url;
-      }
+// function navigatePage(selectElement) {
+//     if (!selectElement) return;
+//     const url = selectElement.value;
+//     if (url && url.trim() !== "") {
+//         window.location.href = url;
+//     }
+// }
+
+// ===== navegação dos selects do dashboard =====
+(function attachAdminSelectNavigation() {
+    // executa após DOM pronto (se este arquivo já for carregado depois do body não precisa esperar, mas garantimos)
+    function init() {
+        const selects = document.querySelectorAll('.admin-select');
+        selects.forEach(select => {
+            // evita que o placeholder dispare (value vazio)
+            select.addEventListener('change', (e) => {
+                const url = (e.target && e.target.value) ? e.target.value.trim() : '';
+                if (!url) return;
+                // log para debug
+                console.log('[Dashboard] navegando para', url);
+                window.location.href = url;
+            });
+        });
+        if (selects.length === 0) console.warn('[Dashboard] nenhum .admin-select encontrado.');
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
