@@ -1,1 +1,28 @@
-<h1>listar user aqui</h1>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Listar Usuários - BookFinder</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+</head>
+<body>
+    <main>
+        <h1>Lista de Usuários</h1>
+        
+        <div style="margin-bottom: 20px;">
+            <a href="/editaruser" style="background: #007bff; color: white; padding: 10px 15px; 
+               text-decoration: none; border-radius: 5px;">Adicionar Novo Usuário</a>
+        </div>
+
+        <div id="listaUsuarios">
+            <!-- Os usuários serão carregados aqui via JavaScript -->
+        </div>
+        
+        <div class="msg" id="mensagem"></div>
+    </main>
+</body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/usuarios.js') }}"></script>
+</html>
