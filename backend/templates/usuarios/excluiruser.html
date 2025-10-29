@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excluir Usuário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Excluir Usuário</h1>
+    </header>
+    <main>
+        <div class="text-container">
+            <h2>Tem certeza que deseja excluir o usuário {{ usuario.nome_completo }}?</h2>
+            <p>Esta ação não pode ser desfeita.</p>
+            <form action="{{ url_for('delete_user', id=usuario.id_usuario) }}" method="POST" style="display: flex; justify-content: center; gap: 20px;">
+                <button type="submit" class="delete-btn" style="background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Sim, excluir</button>
+                <a href="{{ url_for('listaruser') }}" style="background-color: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; text-decoration: none;">Cancelar</a>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

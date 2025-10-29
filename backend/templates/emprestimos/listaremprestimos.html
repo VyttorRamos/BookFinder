@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atrasados</title>
+    <title>Listar Empréstimos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Empréstimos Atrasados</h1>
+        <h1>Empréstimos Ativos</h1>
     </header>
     <main>
         <div class="table-container">
@@ -20,6 +20,7 @@
                         <th>Usuário</th>
                         <th>Data Empréstimo</th>
                         <th>Data Devolução</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,6 +31,10 @@
                         <td>{{ emprestimo.nome_completo }}</td>
                         <td>{{ emprestimo.data_emprestimo }}</td>
                         <td>{{ emprestimo.data_devolucao }}</td>
+                        <td class="action-buttons">
+                            <a href="{{ url_for('renovar', id=emprestimo.id_emprestimo) }}" class="edit-btn">Renovar</a>
+                            <a href="{{ url_for('devolverlivro', id=emprestimo.id_emprestimo) }}" class="delete-btn">Devolver</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

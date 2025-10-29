@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renovar Empréstimo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Renovar Empréstimo</h1>
+    </header>
+    <main>
+        <div class="contact-container">
+            <p>Tem certeza que deseja renovar o empréstimo do livro "{{ emprestimo.titulo }}" para o usuário "{{ emprestimo.nome_completo }}"?</p>
+            <form action="{{ url_for('update_emprestimo', id=emprestimo.id_emprestimo) }}" method="POST">
+                <button type="submit" class="edit-btn">Renovar</button>
+                <a href="{{ url_for('listaremprestimos') }}" class="cancel-btn">Cancelar</a>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

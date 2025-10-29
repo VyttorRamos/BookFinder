@@ -365,3 +365,80 @@ footer {
     color: #004d40;
     text-decoration: underline;
 }
+
+/* Container para a tabela */
+.table-container {
+    width: 100%;
+    margin: 0 auto;
+    overflow-x: auto; /* Para rolagem horizontal em telas pequenas */
+}
+
+/* Estilos gerais da tabela */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Cabeçalho da tabela */
+table thead tr {
+    background-color: #02be92;
+    color: #ffffff;
+    text-align: left;
+}
+
+/* Células do cabeçalho e do corpo da tabela */
+table th,
+table td {
+    padding: 12px 15px;
+}
+
+/* Linhas do corpo da tabela */
+table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+/* Linhas pares do corpo da tabela */
+table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+/* Última linha do corpo da tabela */
+table tbody tr:last-of-type {
+    border-bottom: 2px solid #02be92;
+}
+
+/* Efeito de hover nas linhas do corpo da tabela */
+table tbody tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+/* Estilo para os botões de ação na tabela */
+table .action-buttons a {
+    text-decoration: none;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    margin-right: 5px;
+}
+
+.action-buttons .edit-btn {
+    background-color: #ffc107; /* Amarelo */
+}
+
+.action-buttons .delete-btn {
+    background-color: #dc3545; /* Vermelho */
+}
+
+.action-buttons .edit-btn:hover {
+    background-color: #e0a800;
+}
+
+.action-buttons .delete-btn:hover {
+    background-color: #c82333;
+}
