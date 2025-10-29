@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 from userModel import CadastroUser, PegaUserPorEmail, VerificaLoginUsuario
-from user_controller import UserController
-from user import User
 
 load_dotenv()
 
@@ -207,68 +205,6 @@ def get_books():
         {"id": 2, "title": "Cálculo I", "author": "Beltrano"},
     ]
     return jsonify(books)
-
-# Rotas CRUD para Usuários
-@app.route("/api/usuarios", methods=["GET"])
-@jwt_required()
-def get_all_usuarios():
-    try:
-        users = UserController.get_all_users()
-        if users is None:
-            return jsonify({"error": "Erro ao buscar usuários"}), 500
-        
-        users_dict = [user.to_dict() for user in users]
-        return jsonify(users_dict), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/usuarios/<int:user_id>", methods=["GET"])
-@jwt_required()
-def get_usuario(user_id):
-    try:
-        user = UserController.get_user_by_id(user_id)
-        if not user:
-            return jsonify({"error": "Usuário não encontrado"}), 404
-        
-        return jsonify(user.to_dict()), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/usuarios/<int:user_id>", methods=["PUT"])
-@jwt_required()
-def update_usuario(user_id):
-    try:
-        data = request.json or {}
-        
-        # Verifica se o usuário existe
-        existing_user = UserController.get_user_by_id(user_id)
-        if not existing_user:
-            return jsonify({"error": "Usuário não encontrado"}), 404
-        
-        ok, message = UserController.update_user(user_id, data)
-        if not ok:
-            return jsonify({"error": message}), 400
-        
-        return jsonify({"message": message}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/usuarios/<int:user_id>", methods=["DELETE"])
-@jwt_required()
-def delete_usuario(user_id):
-    try:
-        # Verifica se o usuário existe
-        existing_user = UserController.get_user_by_id(user_id)
-        if not existing_user:
-            return jsonify({"error": "Usuário não encontrado"}), 404
-        
-        ok, message = UserController.delete_user(user_id)
-        if not ok:
-            return jsonify({"error": message}), 400
-        
-        return jsonify({"message": message}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

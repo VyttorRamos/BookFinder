@@ -4,64 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <title>Editar Usuário - BookFinder</title>
+    <title>Cadastro - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
 </head>
 <body>
     <main>
-        <h1>Editar Usuário</h1>
-        <p>Busque e edite as informações do usuário</p>
-        
+        <h1>Editar Usuários</h1>
+        <p>Preencha as informações para se editar!</p>
         <div class="contact-container">
-            <!-- Buscar Usuário -->
-            <div class="form-group">
-                <label for="buscarUsuario">Buscar Usuário (ID ou Email):</label>
-                <input type="text" id="buscarUsuario" name="buscarUsuario" placeholder="Digite o ID ou email">
-                <button type="button" onclick="buscarUsuario()">Buscar</button>
-            </div>
-
-            <div id="resultadoBusca"></div>
-
-            <!-- Formulário de Edição -->
-            <form id="formEditarUsuario" style="display: none;" onsubmit="editarUsuario(event)">
-                <input type="hidden" id="id_usuario" name="id_usuario">
-                
+            <form action="#" method="POST">
                 <div class="form-group">
-                    <label for="nome_completo">Nome Completo:</label>
-                    <input type="text" id="nome_completo" name="nome_completo" required>
+                    <label for="nome">Nome Completo ou ID do usuário</label>
+                    <input type="text" id="nome" name="nome" required>
                 </div>
-                
                 <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="telefone">Telefone:</label>
-                    <input type="text" id="telefone" name="telefone">
-                </div>
-                
-                <div class="form-group">
-                    <label for="tipo_usuario">Tipo de Usuário:</label>
-                    <select id="tipo_usuario" name="tipo_usuario" required>
-                        <option value="aluno">Aluno</option>
-                        <option value="professor">Professor</option>
-                        <option value="admin">Administrador</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="senha">Nova Senha (deixe em branco para manter a atual):</label>
-                    <input type="password" id="senha" name="senha">
-                </div>
-                
-                <button type="submit">Atualizar Usuário</button>
+                    <label for="tel">Telefone</label>
+                    <input type="text" id="tel" name="tel" required>
+                    <br><br>
+                <button type="submit">Cadastrar</button>
             </form>
         </div>
-        
-        <div class="msg" id="mensagem"></div>
     </main>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-<script src="{{ url_for('static', filename='js/usuarios.js') }}"></script>
 </html>
