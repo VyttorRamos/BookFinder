@@ -1,11 +1,12 @@
 from flask_jwt_extended import (JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity)
 from datetime import timedelta
-from flask import Flask, jsonify, request, render_template, redirect, url_for
+from flask import Flask, jsonify, request, render_template, redirect, url_for, session
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
+import random
 
 # Importação dos modelos
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario)
@@ -18,7 +19,9 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Configurações
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "muda_essa_chave")
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "outra_chave_secreta_aqui")
 AcessoExpirado = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 900))
 RefreshExpirado = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES", 604800))
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=AcessoExpirado)
@@ -27,6 +30,26 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(seconds=RefreshExpirado)
 jwt = JWTManager(app)
 
 CORS(app)
+
+# Função para gerar CAPTCHA
+def gerar_captcha():
+    operadores = ['+', '-', '*']
+    operador = random.choice(operadores)
+    
+    if operador == '+':
+        num1 = random.randint(1, 20)
+        num2 = random.randint(1, 20)
+        resposta = num1 + num2
+    elif operador == '-':
+        num1 = random.randint(10, 30)
+        num2 = random.randint(1, num1)  # Garante que não seja negativo
+        resposta = num1 - num2
+    else:  # multiplicação
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 5)  # Números pequenos para não ser muito difícil
+        resposta = num1 * num2
+    
+    return num1, num2, operador, resposta
 
 # --- ROTAS HTML ---
 @app.route("/")
@@ -45,9 +68,42 @@ def sobre():
 def contato():
     return render_template('contato.html')
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template('login.html')
+    if request.method == "POST":
+        # Verificar o CAPTCHA primeiro
+        captcha_resposta = request.form.get('notrobo')
+        if 'captcha_resposta' not in session or str(session['captcha_resposta']) != str(captcha_resposta).strip():
+            # CAPTCHA incorreto - gerar novo
+            num1, num2, operador, resposta = gerar_captcha()
+            session['captcha_resposta'] = resposta
+            return render_template('login.html', 
+                                 error="Resposta do CAPTCHA incorreta. Tente novamente.",
+                                 captcha_pergunta=f"Quanto é {num1} {operador} {num2}?")
+        
+        # CAPTCHA correto - verificar login
+        email = request.form['email']
+        senha = request.form['senha']
+        
+        ok, res = VerificaLoginUsuario(email, senha)
+        if not ok:
+            # Login falhou - gerar novo CAPTCHA
+            num1, num2, operador, resposta = gerar_captcha()
+            session['captcha_resposta'] = resposta
+            return render_template('login.html', 
+                                 error=res,
+                                 captcha_pergunta=f"Quanto é {num1} {operador} {num2}?")
+        
+        # Login bem-sucedido
+        session.pop('captcha_resposta', None)  # Limpar o CAPTCHA
+        # Aqui você pode adicionar a lógica de sessão ou JWT para manter o usuário logado
+        return redirect(url_for('dashboard'))
+    
+    else:  # GET request
+        num1, num2, operador, resposta = gerar_captcha()
+        session['captcha_resposta'] = resposta
+        return render_template('login.html', 
+                             captcha_pergunta=f"Quanto é {num1} {operador} {num2}?")
 
 @app.route("/register")
 def register():
@@ -209,8 +265,6 @@ def listaratrasados():
         return render_template('error.html', message=emprestimos)
     return render_template('emprestimos/listaratrasados.html', emprestimos=emprestimos)
 
-
-
 # ---------------- MULTAS ----------------
 @app.route("/listarmultas")
 def listarmultas():
@@ -218,7 +272,6 @@ def listarmultas():
     if not ok:
         return render_template('error.html', message=multas)
     return render_template('multas/listarmultas.html', multas=multas)
-
 
 @app.route("/removermulta/<int:id>", methods=["GET", "POST"])
 def removermulta(id):
@@ -233,7 +286,6 @@ def removermulta(id):
         return render_template('error.html', message=multa)
 
     return render_template('multas/removermulta.html', multa=multa)
-
 
 # Rotas API
 @app.route("/auth/register", methods=["POST"])
@@ -294,8 +346,6 @@ def route_login():
         "user": user,
         "is_admin": is_admin
     }), 200
-
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

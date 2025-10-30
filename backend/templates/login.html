@@ -22,8 +22,11 @@
                     <input type="password" id="senha" name="senha" required>
                 </div>
                 <div class="form-group">
-                    <label for="notrobo">Confirme que é humano:<br>Quanto é X + Y?</label>
+                    <label for="notrobo">Confirme que é humano:<br>{{ captcha_pergunta }}</label>
                     <input type="text" id="notrobo" name="notrobo" required>
+                    {% if error %}
+                        <p style="color: red; font-size: 0.9em; margin-top: 5px;">{{ error }}</p>
+                    {% endif %}
                 </div>
                 <button type="submit">Entrar</button>
             </form>
