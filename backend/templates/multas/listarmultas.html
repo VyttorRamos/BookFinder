@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listar Gêneros</title>
+    <title>Listar Multas</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Gêneros Cadastrados</h1>
+        <h1>Multas Pendentes</h1>
     </header>
     <main>
         <div class="table-container">
@@ -16,18 +16,21 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nome do Gênero</th>
+                        <th>Usuário</th>
+                        <th>Valor</th>
+                        <th>Status</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for genero in generos %}
+                    {% for multa in multas %}
                     <tr>
-                        <td>{{ genero.id_genero }}</td>
-                        <td>{{ genero.nome_genero }}</td>
+                        <td>{{ multa.id_multa }}</td>
+                        <td>{{ multa.nome_completo }}</td>
+                        <td>{{ multa.valor_multa }}</td>
+                        <td>{{ multa.status_pagamento }}</td>
                         <td class="action-buttons">
-                            <a href="{{ url_for('editargenero', id=genero.id_genero) }}" class="edit-btn">Editar</a>
-                            <a href="{{ url_for('excluirgenero', id=genero.id_genero) }}" class="delete-btn">Excluir</a>
+                            <a href="{{ url_for('removermulta', id=multa.id_multa) }}" class="delete-btn">Remover</a>
                         </td>
                     </tr>
                     {% endfor %}

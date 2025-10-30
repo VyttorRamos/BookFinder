@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Gênero</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Cadastrar Gênero</h1>
+    </header>
+    <main>
+        <div class="contact-container">
+            <form action="{{ url_for('cadastrargenero') }}" method="POST">
+                <div class="form-group">
+                    <label for="nome_genero">Nome do Gênero</label>
+                    <input type="text" id="nome_genero" name="nome_genero" required>
+                </div>
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
