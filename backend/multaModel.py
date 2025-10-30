@@ -1,9 +1,10 @@
 import mysql.connector
-from db_connection import get_db_connection
+from configDB import DBConexao
+
 
 def ListarMultas():
     try:
-        conn = get_db_connection()
+        conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
         # Join para pegar nome do usuário
         sql = """
@@ -28,7 +29,7 @@ def ListarMultas():
 
 def PegaMultaPorId(id_multa):
     try:
-        conn = get_db_connection()
+        conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
         sql = """SELECT m.*, u.nome_completo FROM multas m
                  JOIN usuarios u ON m.id_usuario = u.id_usuario
@@ -47,7 +48,7 @@ def PegaMultaPorId(id_multa):
 
 def RemoverMulta(id_multa):
     try:
-        conn = get_db_connection()
+        conn = DBConexao()
         cursor = conn.cursor()
         # A "remoção" na verdade é marcar a multa como paga
         cursor.execute("UPDATE multas SET paga = TRUE WHERE id_multa = %s", (id_multa,))

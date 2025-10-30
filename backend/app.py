@@ -210,28 +210,6 @@ def listaratrasados():
     return render_template('emprestimos/listaratrasados.html', emprestimos=emprestimos)
 
 
-# ---------------- MULTAS ----------------
-@app.route("/listarmultas")
-def listarmultas():
-    ok, multas = ListarMultas()
-    if not ok:
-        return render_template('error.html', message=multas)
-    return render_template('multas/listarmultas.html', multas=multas)
-
-@app.route("/removermulta/<int:id>", methods=["GET", "POST"])
-def removermulta(id):
-    if request.method == 'POST':
-        ok, message = RemoverMulta(id)
-        if not ok:
-            return render_template('error.html', message=message)
-        return redirect(url_for('listarmultas'))
-
-    ok, multa = PegaMultaPorId(id)
-    if not ok:
-        return render_template('error.html', message=multa)
-
-    return render_template('multas/removermulta.html', multa=multa)
-
 
 # ---------------- MULTAS ----------------
 @app.route("/listarmultas")

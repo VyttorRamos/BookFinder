@@ -2,38 +2,6 @@ from configDB import DBConexao
 from mysql.connector import Error
 from auth.auth_utils import SenhaHash, VerificaSenha
 
-# def PegaTipoUsuario(email: str):
-#     conn = None
-#     try:
-#         conn = DBConexao()
-#         if not conn:
-#             return None
-
-#         cursor = conn.cursor()
-#         sql = "SELECT tipo_usuario FROM usuarios WHERE email = %s LIMIT 1"
-#         cursor.execute(sql, (email,))
-#         result = cursor.fetchone()
-#         cursor.close()
-
-#         if result:
-#             return result[0]  # tipo_usuario
-#         else:
-#             return None
-
-#     except Exception as e:
-#         print(f"[PegaTipoUsuario] ERRO: {e}")
-#         return None
-#     finally:
-#         if conn and conn.is_connected():
-#             conn.close()
-
-
-# def VerificaAdmin(email: str):
-#     tipo = PegaTipoUsuario(email)
-#     if tipo == 'admin':
-#         return True
-#     else:
-#         return False
 
 def PegaUserPorEmail(email: str):
     conn = None
