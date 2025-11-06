@@ -58,10 +58,37 @@ function configurarBusca() {
     }
 }
 
+// Função para configurar CAPTCHA
+function configurarCaptcha() {
+    const captchaForm = document.querySelector('form');
+    const captchaInput = document.getElementById('notrobo');
+    
+    if (captchaForm && captchaInput) {
+        captchaForm.addEventListener('submit', function(e) {
+            if (!captchaInput.value.trim()) {
+                e.preventDefault();
+                MostrarMensagem('Por favor, responda a pergunta do CAPTCHA.', true);
+                captchaInput.focus();
+                return false;
+            }
+            
+            // Verificação básica de números (opcional)
+            const resposta = captchaInput.value.trim();
+            if (!/^\d+$/.test(resposta)) {
+                e.preventDefault();
+                MostrarMensagem('A resposta deve conter apenas números.', true);
+                captchaInput.focus();
+                return false;
+            }
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     carregarHeader();
     carregarFooter();
     configurarBusca();
+    configurarCaptcha();
 });
 
 function log(msg) {
@@ -69,13 +96,34 @@ function log(msg) {
 }
 
 function MostrarMensagem(mensagem, isError = false) {
-    const el = document.querySelector('.msg');
-    if (el) {
-        el.textContent = mensagem;
-        el.style.color = isError ? "crimson" : 'green';
-    } else {
-        alert(mensagem);
+    // Primeiro tenta encontrar uma mensagem existente
+    let el = document.querySelector('.msg');
+    
+    // Se não existe, cria uma
+    if (!el) {
+        el = document.createElement('div');
+        el.className = 'msg';
+        document.querySelector('main').prepend(el);
     }
+    
+    el.textContent = mensagem;
+    el.style.cssText = `
+        padding: 12px;
+        margin: 15px 0;
+        border-radius: 6px;
+        font-weight: bold;
+        text-align: center;
+        background-color: ${isError ? '#f8d7da' : '#d1edff'};
+        color: ${isError ? '#721c24' : '#004085'};
+        border: 1px solid ${isError ? '#f5c6cb' : '#b8daff'};
+    `;
+    
+    // Remove a mensagem após 5 segundos
+    setTimeout(() => {
+        if (el && el.parentNode) {
+            el.parentNode.removeChild(el);
+        }
+    }, 5000);
 }
 
 async function Registro(e) {
@@ -93,6 +141,13 @@ async function Registro(e) {
     }
     if (senha !== senha_confirm) {
         MostrarMensagem('As senhas não são iguais.', true);
+        return;
+    }
+
+    // Validação de email básica
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        MostrarMensagem('Por favor, insira um email válido.', true);
         return;
     }
 
@@ -131,6 +186,13 @@ async function Login(e) {
         return;
     }
 
+    // Validação de email básica
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        MostrarMensagem('Por favor, insira um email válido.', true);
+        return;
+    }
+
     try {
         const res = await fetch(API_BASE + '/auth/login', {
             method: 'POST',
@@ -149,8 +211,8 @@ async function Login(e) {
 
             MostrarMensagem('Login realizado com sucesso.');
 
-            //Verifica se o usuário é admin
-            if (json.user && json.user.tipo_usuario === 'admin') {
+            // Verifica se o usuário é admin
+            if (json.user && (json.user.tipo_usuario === 'admin' || json.is_admin)) {
                 setTimeout(() => window.location.href = '/dashboard', 700);
             } else {
                 setTimeout(() => window.location.href = '/', 700);
@@ -166,6 +228,32 @@ async function Login(e) {
     }
 }
 
+// Função para verificar se usuário está logado
+function verificarLogin() {
+    const token = localStorage.getItem('bf_access');
+    if (token) {
+        // Se está na página de login e já tem token, redireciona
+        if (window.location.pathname === '/login') {
+            window.location.href = '/';
+        }
+        
+        // Atualiza header para mostrar opção de logout
+        const menu = document.querySelector('.menu');
+        if (menu) {
+            const loginItem = menu.querySelector('a[href="/login"]');
+            if (loginItem) {
+                loginItem.textContent = 'Sair';
+                loginItem.href = '#';
+                loginItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('bf_access');
+                    localStorage.removeItem('bf_refresh');
+                    window.location.href = '/';
+                });
+            }
+        }
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // register form
@@ -183,27 +271,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const last = localStorage.getItem('bf_last_email');
         if (last) document.getElementById('email').value = last;
     }
+    
+    verificarLogin();
 });
-
-// function navigatePage(selectElement) {
-//     if (!selectElement) return;
-//     const url = selectElement.value;
-//     if (url && url.trim() !== "") {
-//         window.location.href = url;
-//     }
-// }
 
 // ===== navegação dos selects do dashboard =====
 (function attachAdminSelectNavigation() {
-    // executa após DOM pronto (se este arquivo já for carregado depois do body não precisa esperar, mas garantimos)
     function init() {
         const selects = document.querySelectorAll('.admin-select');
         selects.forEach(select => {
-            // evita que o placeholder dispare (value vazio)
             select.addEventListener('change', (e) => {
                 const url = (e.target && e.target.value) ? e.target.value.trim() : '';
                 if (!url) return;
-                // log para debug
                 console.log('[Dashboard] navegando para', url);
                 window.location.href = url;
             });

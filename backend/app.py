@@ -1,6 +1,6 @@
 from flask_jwt_extended import (JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity)
 from datetime import timedelta
-from flask import Flask, jsonify, request, render_template, redirect, url_for, session
+from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -20,8 +20,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configurações
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "muda_essa_chave")
-app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "outra_chave_secreta_aqui")
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "keysecret")
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "secretkey")
 AcessoExpirado = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 900))
 RefreshExpirado = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES", 604800))
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=AcessoExpirado)
@@ -36,19 +36,21 @@ def gerar_captcha():
     operadores = ['+', '-', '*']
     operador = random.choice(operadores)
     
+    # Garantir que os números sejam sempre inteiros e a operação seja clara
     if operador == '+':
         num1 = random.randint(1, 20)
         num2 = random.randint(1, 20)
         resposta = num1 + num2
     elif operador == '-':
         num1 = random.randint(10, 30)
-        num2 = random.randint(1, num1)  # Garante que não seja negativo
+        num2 = random.randint(1, num1 - 1)  # Garante resultado positivo
         resposta = num1 - num2
     else:  # multiplicação
         num1 = random.randint(1, 10)
-        num2 = random.randint(1, 5)  # Números pequenos para não ser muito difícil
+        num2 = random.randint(1, 5)
         resposta = num1 * num2
     
+    print(f"DEBUG CAPTCHA: {num1} {operador} {num2} = {resposta}")
     return num1, num2, operador, resposta
 
 # --- ROTAS HTML ---
@@ -72,17 +74,22 @@ def contato():
 def login():
     if request.method == "POST":
         # --- Verificação do CAPTCHA ---
-        captcha_resposta = request.form.get("notrobo", "").strip()
-        captcha_correta = str(request.form.get("captcha_correta", "")).strip()
-
-        if captcha_resposta != captcha_correta:
+        captcha_resposta_usuario = request.form.get("notrobo", "").strip()
+        captcha_resposta_correta = request.form.get("captcha_correta", "").strip()
+        
+        print(f"DEBUG: Resposta usuário: {captcha_resposta_usuario}")
+        print(f"DEBUG: Resposta correta esperada: {captcha_resposta_correta}")
+        
+        if not captcha_resposta_usuario or captcha_resposta_usuario != captcha_resposta_correta:
             # CAPTCHA incorreto → gerar novo
             num1, num2, operador, resposta = gerar_captcha()
+            
             return render_template(
                 "login.html",
                 error="Resposta do CAPTCHA incorreta. Tente novamente.",
                 captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
-                captcha_correta=resposta
+                captcha_correta=resposta,
+                email=request.form.get('email', '')
             )
 
         # --- CAPTCHA correto: verificar login ---
@@ -93,30 +100,38 @@ def login():
         if not ok:
             # Login falhou → gerar novo CAPTCHA
             num1, num2, operador, resposta = gerar_captcha()
+            
             return render_template(
                 "login.html",
                 error=res,
                 captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
-                captcha_correta=resposta
+                captcha_correta=resposta,
+                email=email
             )
 
         # --- Login bem-sucedido ---
         usuario = PegaUserPorEmail(email)
 
         # Redirecionar conforme tipo de usuário
-        if usuario["tipo"].lower() == "admin":
+        if usuario["tipo_usuario"].lower() == "admin":
             return redirect(url_for("dashboard"))
         else:
             return redirect(url_for("home"))
 
     # --- GET: exibe login com novo CAPTCHA ---
     num1, num2, operador, resposta = gerar_captcha()
+    
+    print(f"DEBUG: Novo CAPTCHA gerado - Pergunta: {num1} {operador} {num2}, Resposta: {resposta}")
+    
     return render_template(
         "login.html",
         captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
         captcha_correta=resposta
     )
 
+@app.route("/logout")
+def logout():
+    return redirect(url_for('home'))
 
 @app.route("/register")
 def register():
@@ -185,29 +200,97 @@ def listarlivros():
 @app.route("/cadastrarlivro", methods=["GET", "POST"])
 def cadastrarlivro():
     if request.method == 'POST':
-        # Lógica de cadastro
-        pass
+        titulo = request.form['titulo'].strip()
+        isbn = request.form.get('isbn', '').strip()
+        ano_publicacao = request.form.get('ano_publicacao', '').strip()
+        id_editora = request.form.get('id_editora')
+        id_categoria = request.form.get('id_categoria')
+        
+        if not titulo:
+            return render_template('livros/cadastrarlivro.html', 
+                                 error="Título do livro é obrigatório")
+        
+        ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria)
+        if not ok:
+            return render_template('livros/cadastrarlivro.html', 
+                                 error=message, titulo=titulo, isbn=isbn, 
+                                 ano_publicacao=ano_publicacao)
+        
+        return redirect(url_for('listarlivros'))
+    
     return render_template('livros/cadastrarlivro.html')
 
 @app.route("/editarlivro/<int:id>", methods=["GET", "POST"])
 def editarlivro(id):
     if request.method == 'POST':
-        # Lógica de edição
-        pass
+        titulo = request.form['titulo'].strip()
+        isbn = request.form.get('isbn', '').strip()
+        ano_publicacao = request.form.get('ano_publicacao', '').strip()
+        id_editora = request.form.get('id_editora')
+        id_categoria = request.form.get('id_categoria')
+        
+        if not titulo:
+            ok, livro = PegaLivroPorId(id)
+            if not ok:
+                return render_template('error.html', message=livro)
+            return render_template('livros/editarlivro.html', 
+                                 livro=livro, error="Título do livro é obrigatório")
+        
+        ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
+        if not ok:
+            ok, livro = PegaLivroPorId(id)
+            if not ok:
+                return render_template('error.html', message=livro)
+            return render_template('livros/editarlivro.html', 
+                                 livro=livro, error=message)
+        
+        return redirect(url_for('listarlivros'))
+    
+    # GET - Carregar dados do livro
     ok, livro = PegaLivroPorId(id)
     if not ok:
         return render_template('error.html', message=livro)
+    
     return render_template('livros/editarlivro.html', livro=livro)
+
+# ADICIONE ESTA ROTA FALTANTE
+@app.route("/update_livro/<int:id>", methods=["POST"])
+def update_livro(id):
+    titulo = request.form['titulo'].strip()
+    isbn = request.form.get('isbn', '').strip()
+    ano_publicacao = request.form.get('ano_publicacao', '').strip()
+    id_editora = request.form.get('id_editora')
+    id_categoria = request.form.get('id_categoria')
+    
+    if not titulo:
+        return render_template('error.html', message="Título do livro é obrigatório")
+    
+    ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
+    if not ok:
+        return render_template('error.html', message=message)
+    
+    return redirect(url_for('listarlivros'))
 
 @app.route("/excluirlivro/<int:id>", methods=["GET", "POST"])
 def excluirlivro(id):
     if request.method == 'POST':
-        # Lógica de exclusão
-        pass
+        ok, message = DeletarLivro(id)
+        if not ok:
+            return render_template('error.html', message=message)
+        return redirect(url_for('listarlivros'))
+
     ok, livro = PegaLivroPorId(id)
     if not ok:
         return render_template('error.html', message=livro)
     return render_template('livros/excluirlivro.html', livro=livro)
+
+# ADICIONE ESTA ROTA FALTANTE
+@app.route("/delete_livro/<int:id>", methods=["POST"])
+def delete_livro(id):
+    ok, message = DeletarLivro(id)
+    if not ok:
+        return render_template('error.html', message=message)
+    return redirect(url_for('listarlivros'))
 
 # ---------------- GÊNEROS ----------------
 @app.route("/listargeneros")
@@ -355,6 +438,7 @@ def renovar(id):
     if not ok:
         return render_template('error.html', message=emprestimo)
     return render_template('emprestimos/renovar.html', emprestimo=emprestimo)
+
 @app.route("/update_emprestimo/<int:id>", methods=["POST"])
 def update_emprestimo(id):
     ok, message = RenovarEmprestimo(id)

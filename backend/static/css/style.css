@@ -442,3 +442,23 @@ table .action-buttons a {
 .action-buttons .delete-btn:hover {
     background-color: #c82333;
 }
+
+.status-pendente {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.status-pago {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-cancelado {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.disabled-btn {
+    color: #6c757d;
+    cursor: not-allowed;
+}

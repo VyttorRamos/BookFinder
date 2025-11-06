@@ -5,27 +5,28 @@ from mysql.connector import Error
 
 load_dotenv()
 
-MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
-MYSQL_USER = os.getenv("MYSQL_USER")
-MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
-MYSQL_DB = os.getenv("MYSQL_DB")
-MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
+# CORREÇÃO: Use DB_ em vez de MYSQL_
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "BookFinderDB")
+DB_PORT = int(os.getenv("DB_PORT", "3306"))
 
 def DBConexao():
     try:
         print(f"[db_config] Tentando conectar com:")
-        print(f"  Host: {MYSQL_HOST}")
-        print(f"  User: {MYSQL_USER}")
-        print(f"  Database: {MYSQL_DB}")
-        print(f"  Port: {MYSQL_PORT}")
-        print(f"  Password: {'***' if MYSQL_PASSWORD else 'None'}")
+        print(f"  Host: {DB_HOST}")
+        print(f"  User: {DB_USER}")
+        print(f"  Database: {DB_NAME}")
+        print(f"  Port: {DB_PORT}")
+        print(f"  Password: {'***' if DB_PASSWORD else 'None'}")
         
         conn = mysql.connector.connect(
-            host=MYSQL_HOST,
-            user=MYSQL_USER,
-            password=MYSQL_PASSWORD,
-            database=MYSQL_DB,
-            port=MYSQL_PORT,
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME,
+            port=DB_PORT,
             connection_timeout=10
         )
         

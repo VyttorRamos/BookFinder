@@ -12,25 +12,40 @@
         <h1>Bem-vindo ao BookFinder!</h1>
         <p>Realize o login ou registre-se <a href="/register">aqui</a>!</p>
         <div class="contact-container">
-            <form action="#" method="POST">
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form action="{{ url_for('login') }}" method="POST">
                 <div class="form-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email" value="{{ email or '' }}" required>
                 </div>
                 <div class="form-group">
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" name="senha" required>
                 </div>
                 <div class="form-group">
-                    <label for="notrobo">Confirme que é humano:<br>{{ captcha_pergunta }}</label>
-                    <input type="text" id="notrobo" name="notrobo" required>
-                    <input type="hidden" name="captcha_correta" value="{{ captcha_correta }}">
-                    {% if error %}
-                        <p style="color: red; font-size: 0.9em; margin-top: 5px;">{{ error }}</p>
-                    {% endif %}
+                    <div class="captcha-container">
+                        <label for="notrobo">Prove que não é um robô:</label>
+                        <div class="captcha-pergunta">
+                            <strong>{{ captcha_pergunta }}</strong>
+                        </div>
+                        <input type="text" id="notrobo" name="notrobo" placeholder="Digite a resposta" required>
+                        <input type="hidden" name="captcha_correta" value="{{ captcha_correta }}">
+                        <small style="color: #666; font-size: 0.8em; display: block; margin-top: 5px;">
+                            Digite apenas o número resultante da operação
+                        </small>
+                    </div>
                 </div>
                 <button type="submit">Entrar</button>
             </form>
+            
+            <p class="register-link">
+                Não tem uma conta? <a href="{{ url_for('register') }}">Cadastre-se aqui</a>
+            </p>
         </div>
     </main>
 </body>

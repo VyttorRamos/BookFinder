@@ -1,7 +1,8 @@
 CREATE DATABASE BookFinderDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE BookFinderDB;
+select *from usuarios;
 
--- Tabela dos usuários do sistema
+-- Tabela dos usuários do sistema (PRIMEIRO - não depende de ninguém)
 CREATE TABLE usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome_completo VARCHAR(255) NOT NULL,
@@ -14,14 +15,14 @@ CREATE TABLE usuarios (
     dt_alteracao DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela dos autores
+-- Tabela dos autores (SEGUNDO - não depende de ninguém)
 CREATE TABLE autores (
     id_autor INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
-    biografia TEXT NULL,
+    biografia TEXT NULL
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela das editoras
+-- Tabela das editoras (TERCEIRO - não depende de ninguém)
 CREATE TABLE editoras (
     id_editora INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
@@ -30,14 +31,14 @@ CREATE TABLE editoras (
     email VARCHAR(255) NULL
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela das categorias
+-- Tabela das categorias (QUARTO - não depende de ninguém)
 CREATE TABLE categorias (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     descricao TEXT NULL
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela dos livros
+-- Tabela dos livros (QUINTO - depende de editoras e categorias)
 CREATE TABLE livros (
     id_livro INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
@@ -52,22 +53,22 @@ CREATE TABLE livros (
     CONSTRAINT fk_livros_categoria FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de relacionamento N:N entre livros e autores
+-- Tabela de relacionamento N:N entre livros e autores (SEXTO - depende de livros e autores)
 CREATE TABLE livros_autores (
     id_livro INT NOT NULL,
     id_autor INT NOT NULL,
-    PRIMARY KEY (id_livro, id_autor), -- Chave primária composta garante unicidade
+    PRIMARY KEY (id_livro, id_autor),
     CONSTRAINT fk_la_livro FOREIGN KEY (id_livro) REFERENCES livros(id_livro) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_la_autor FOREIGN KEY (id_autor) REFERENCES autores(id_autor) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- NORMALIZAÇÃO: Tabela de Tags
+-- Tabela de Tags (SÉTIMO - não depende de ninguém)
 CREATE TABLE tags (
 	id_tag INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) UNIQUE NOT NULL
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de relacionamento N:N entre livros e tags
+-- Tabela de relacionamento N:N entre livros e tags (OITAVO - depende de livros e tags)
 CREATE TABLE livros_tags (
 	id_livro INT NOT NULL,
     id_tag INT NOT NULL,
@@ -76,7 +77,7 @@ CREATE TABLE livros_tags (
     CONSTRAINT fk_lt_tag FOREIGN KEY (id_tag) REFERENCES tags(id_tag) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de exemplares (cópias físicas de cada livro)
+-- Tabela de exemplares (cópias físicas) (NONO - depende de livros)
 CREATE TABLE copias (
     id_copia INT AUTO_INCREMENT PRIMARY KEY,
     id_livro INT NOT NULL,
@@ -85,7 +86,7 @@ CREATE TABLE copias (
     CONSTRAINT fk_copias_livro FOREIGN KEY (id_livro) REFERENCES livros(id_livro) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de empréstimos
+-- Tabela de empréstimos (DÉCIMO - depende de usuarios e copias)
 CREATE TABLE emprestimos (
     id_emprestimo INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
@@ -99,7 +100,7 @@ CREATE TABLE emprestimos (
     CONSTRAINT fk_emprestimos_copia FOREIGN KEY (id_copia) REFERENCES copias(id_copia) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de multas
+-- Tabela de multas (DÉCIMO PRIMEIRO - depende de emprestimos)
 CREATE TABLE multas (
     id_multa INT AUTO_INCREMENT PRIMARY KEY,
     id_emprestimo INT NOT NULL,
@@ -110,7 +111,7 @@ CREATE TABLE multas (
     CONSTRAINT fk_multas_emprestimo FOREIGN KEY (id_emprestimo) REFERENCES emprestimos(id_emprestimo) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de Recomendações
+-- Tabela de Recomendações (DÉCIMO SEGUNDO - depende de usuarios e livros)
 CREATE TABLE recomendacoes (
     id_recomendacao INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
@@ -121,7 +122,7 @@ CREATE TABLE recomendacoes (
     CONSTRAINT fk_recomendacoes_livro FOREIGN KEY (id_livro) REFERENCES livros(id_livro) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 
--- Tabela de histórico de ações dos usuários
+-- Tabela de histórico de ações (DÉCIMO TERCEIRO - depende de usuarios)
 CREATE TABLE hist_acoes (
     id_acao INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,

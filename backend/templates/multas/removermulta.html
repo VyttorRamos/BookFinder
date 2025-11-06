@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +7,26 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
     <header>
         <h1>Remover Multa</h1>
     </header>
     <main>
         <div class="contact-container">
-            <p>Tem certeza que deseja remover a multa do usuário "{{ multa.nome_completo }}"?</p>
+            <div class="warning-message">
+                <h3>Confirmar Remoção de Multa</h3>
+                <p><strong>Livro:</strong> {{ multa.titulo }}</p>
+                <p><strong>Usuário:</strong> {{ multa.nome_completo }}</p>
+                <p><strong>Valor:</strong> R$ {{ "%.2f"|format(multa.valor) }}</p>
+                <p><strong>Status:</strong> {{ multa.status_multa }}</p>
+                <p class="warning-text">Tem certeza que deseja remover/cancelar esta multa?</p>
+            </div>
+            
             <form action="{{ url_for('delete_multa', id=multa.id_multa) }}" method="POST">
-                <button type="submit" class="delete-btn">Remover</button>
-                <a href="{{ url_for('listarmultas') }}" class="cancel-btn">Cancelar</a>
+                <div class="form-actions">
+                    <button type="submit" class="delete-btn">Confirmar Remoção</button>
+                    <a href="{{ url_for('listarmultas') }}" class="btn-secondary">Cancelar</a>
+                </div>
             </form>
         </div>
     </main>

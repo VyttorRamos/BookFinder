@@ -1,21 +1,26 @@
 import mysql.connector
 from configDB import DBConexao
 
-
 def ListarMultas():
     try:
         conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
-        # Join para pegar nome do usuário
         sql = """
             SELECT 
-                m.id_multa, 
-                u.nome_completo, 
-                m.valor_multa, 
-                m.data_multa,
-                m.paga
+                m.id_multa,
+                m.valor,
+                m.status_multa,
+                m.dt_criacao,
+                m.dt_pagamento,
+                e.id_emprestimo,
+                l.titulo,
+                u.nome_completo
             FROM multas m
-            JOIN usuarios u ON m.id_usuario = u.id_usuario
+            JOIN emprestimos e ON m.id_emprestimo = e.id_emprestimo
+            JOIN copias c ON e.id_copia = c.id_copia
+            JOIN livros l ON c.id_livro = l.id_livro
+            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            ORDER BY m.dt_criacao DESC
         """
         cursor.execute(sql)
         multas = cursor.fetchall()
@@ -31,9 +36,20 @@ def PegaMultaPorId(id_multa):
     try:
         conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
-        sql = """SELECT m.*, u.nome_completo FROM multas m
-                 JOIN usuarios u ON m.id_usuario = u.id_usuario
-                 WHERE m.id_multa = %s"""
+        sql = """
+            SELECT 
+                m.*,
+                e.id_emprestimo,
+                l.titulo,
+                u.nome_completo,
+                u.id_usuario
+            FROM multas m
+            JOIN emprestimos e ON m.id_emprestimo = e.id_emprestimo
+            JOIN copias c ON e.id_copia = c.id_copia
+            JOIN livros l ON c.id_livro = l.id_livro
+            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            WHERE m.id_multa = %s
+        """
         cursor.execute(sql, (id_multa,))
         multa = cursor.fetchone()
         if not multa:
@@ -50,10 +66,16 @@ def RemoverMulta(id_multa):
     try:
         conn = DBConexao()
         cursor = conn.cursor()
-        # A "remoção" na verdade é marcar a multa como paga
-        cursor.execute("UPDATE multas SET paga = TRUE WHERE id_multa = %s", (id_multa,))
+        
+        # Atualizar o status da multa para 'cancelado' em vez de deletar
+        cursor.execute("""
+            UPDATE multas 
+            SET status_multa = 'cancelado', dt_pagamento = NOW() 
+            WHERE id_multa = %s
+        """, (id_multa,))
+        
         conn.commit()
-        return True, "Multa removida (paga) com sucesso!"
+        return True, "Multa removida/cancelada com sucesso!"
     except mysql.connector.Error as err:
         return False, f"Erro ao remover multa: {err}"
     finally:

@@ -9,17 +9,20 @@
 </head>
 <body>
     <header>
-        <h1>Multas Pendentes</h1>
+        <h1>Multas Cadastradas</h1>
     </header>
     <main>
         <div class="table-container">
+            {% if multas %}
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Livro</th>
                         <th>Usuário</th>
                         <th>Valor</th>
                         <th>Status</th>
+                        <th>Data Criação</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -27,16 +30,31 @@
                     {% for multa in multas %}
                     <tr>
                         <td>{{ multa.id_multa }}</td>
+                        <td>{{ multa.titulo }}</td>
                         <td>{{ multa.nome_completo }}</td>
-                        <td>{{ multa.valor_multa }}</td>
-                        <td>{{ multa.status_pagamento }}</td>
+                        <td>R$ {{ "%.2f"|format(multa.valor) }}</td>
+                        <td>
+                            <span class="status-{{ multa.status_multa }}">
+                                {{ multa.status_multa }}
+                            </span>
+                        </td>
+                        <td>{{ multa.dt_criacao }}</td>
                         <td class="action-buttons">
+                            {% if multa.status_multa == 'pendente' %}
                             <a href="{{ url_for('removermulta', id=multa.id_multa) }}" class="delete-btn">Remover</a>
+                            {% else %}
+                            <span class="disabled-btn">Já processada</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <div class="no-data">
+                <p>Nenhuma multa cadastrada.</p>
+            </div>
+            {% endif %}
         </div>
     </main>
 </body>
