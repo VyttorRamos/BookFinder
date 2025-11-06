@@ -24,6 +24,7 @@
                 <div class="form-group">
                     <label for="notrobo">Confirme que é humano:<br>{{ captcha_pergunta }}</label>
                     <input type="text" id="notrobo" name="notrobo" required>
+                    <input type="hidden" name="captcha_correta" value="{{ captcha_correta }}">
                     {% if error %}
                         <p style="color: red; font-size: 0.9em; margin-top: 5px;">{{ error }}</p>
                     {% endif %}

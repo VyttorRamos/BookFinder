@@ -71,39 +71,52 @@ def contato():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        # Verificar o CAPTCHA primeiro
-        captcha_resposta = request.form.get('notrobo')
-        if 'captcha_resposta' not in session or str(session['captcha_resposta']) != str(captcha_resposta).strip():
-            # CAPTCHA incorreto - gerar novo
+        # --- Verificação do CAPTCHA ---
+        captcha_resposta = request.form.get("notrobo", "").strip()
+        captcha_correta = str(request.form.get("captcha_correta", "")).strip()
+
+        if captcha_resposta != captcha_correta:
+            # CAPTCHA incorreto → gerar novo
             num1, num2, operador, resposta = gerar_captcha()
-            session['captcha_resposta'] = resposta
-            return render_template('login.html', 
-                                 error="Resposta do CAPTCHA incorreta. Tente novamente.",
-                                 captcha_pergunta=f"Quanto é {num1} {operador} {num2}?")
-        
-        # CAPTCHA correto - verificar login
-        email = request.form['email']
-        senha = request.form['senha']
-        
+            return render_template(
+                "login.html",
+                error="Resposta do CAPTCHA incorreta. Tente novamente.",
+                captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
+                captcha_correta=resposta
+            )
+
+        # --- CAPTCHA correto: verificar login ---
+        email = request.form.get("email", "").strip()
+        senha = request.form.get("senha", "").strip()
+
         ok, res = VerificaLoginUsuario(email, senha)
         if not ok:
-            # Login falhou - gerar novo CAPTCHA
+            # Login falhou → gerar novo CAPTCHA
             num1, num2, operador, resposta = gerar_captcha()
-            session['captcha_resposta'] = resposta
-            return render_template('login.html', 
-                                 error=res,
-                                 captcha_pergunta=f"Quanto é {num1} {operador} {num2}?")
-        
-        # Login bem-sucedido
-        session.pop('captcha_resposta', None)  # Limpar o CAPTCHA
-        # Aqui você pode adicionar a lógica de sessão ou JWT para manter o usuário logado
-        return redirect(url_for('dashboard'))
-    
-    else:  # GET request
-        num1, num2, operador, resposta = gerar_captcha()
-        session['captcha_resposta'] = resposta
-        return render_template('login.html', 
-                             captcha_pergunta=f"Quanto é {num1} {operador} {num2}?")
+            return render_template(
+                "login.html",
+                error=res,
+                captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
+                captcha_correta=resposta
+            )
+
+        # --- Login bem-sucedido ---
+        usuario = PegaUserPorEmail(email)
+
+        # Redirecionar conforme tipo de usuário
+        if usuario["tipo"].lower() == "admin":
+            return redirect(url_for("dashboard"))
+        else:
+            return redirect(url_for("home"))
+
+    # --- GET: exibe login com novo CAPTCHA ---
+    num1, num2, operador, resposta = gerar_captcha()
+    return render_template(
+        "login.html",
+        captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
+        captcha_correta=resposta
+    )
+
 
 @app.route("/register")
 def register():
