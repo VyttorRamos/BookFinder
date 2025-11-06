@@ -175,7 +175,7 @@ def delete_user(id):
     return redirect(url_for('listaruser'))
 
 # ---------------- LIVROS ----------------
-@app.route("/listarlivros")
+@app.route("/listarlivro")
 def listarlivros():
     ok, livros = ListarLivros()
     if not ok:
@@ -217,7 +217,84 @@ def listargeneros():
         return render_template('error.html', message=generos)
     return render_template('generos/listargeneros.html', generos=generos)
 
-# ... (Rotas para cadastrar, editar, excluir generos) ...
+@app.route("/cadastrargenero", methods=["GET", "POST"])
+def cadastrargenero():
+    if request.method == "POST":
+        nome_genero = request.form['nome_genero'].strip()
+        descricao = request.form.get('descricao', '').strip()
+        
+        if not nome_genero:
+            return render_template('generos/cadastrargenero.html', 
+                                 error="Nome da categoria é obrigatório")
+        
+        ok, message = CadastrarGenero(nome_genero, descricao)
+        if not ok:
+            return render_template('generos/cadastrargenero.html', 
+                                 error=message, nome_genero=nome_genero, descricao=descricao)
+        
+        return redirect(url_for('listargeneros'))
+    
+    return render_template('generos/cadastrargenero.html')
+
+@app.route("/editargenero/<int:id>", methods=["GET", "POST"])
+def editargenero(id):
+    if request.method == "POST":
+        nome_genero = request.form['nome_genero'].strip()
+        descricao = request.form.get('descricao', '').strip()
+        
+        if not nome_genero:
+            ok, genero = PegaGeneroPorId(id)
+            if not ok:
+                return render_template('error.html', message=genero)
+            return render_template('generos/editargenero.html', 
+                                 genero=genero, error="Nome da categoria é obrigatório")
+        
+        ok, message = AtualizarGenero(id, nome_genero, descricao)
+        if not ok:
+            ok, genero = PegaGeneroPorId(id)
+            if not ok:
+                return render_template('error.html', message=genero)
+            return render_template('generos/editargenero.html', 
+                                 genero=genero, error=message)
+        
+        return redirect(url_for('listargeneros'))
+    
+    # GET - Carregar dados do gênero
+    ok, genero = PegaGeneroPorId(id)
+    if not ok:
+        return render_template('error.html', message=genero)
+    
+    return render_template('generos/editargenero.html', genero=genero)
+
+@app.route("/update_genero/<int:id>", methods=["POST"])
+def update_genero(id):
+    nome_genero = request.form['nome_genero'].strip()
+    descricao = request.form.get('descricao', '').strip()
+    
+    if not nome_genero:
+        return render_template('error.html', message="Nome da categoria é obrigatório")
+    
+    ok, message = AtualizarGenero(id, nome_genero, descricao)
+    if not ok:
+        return render_template('error.html', message=message)
+    
+    return redirect(url_for('listargeneros'))
+
+@app.route("/excluirgenero/<int:id>")
+def excluirgenero(id):
+    ok, genero = PegaGeneroPorId(id)
+    if not ok:
+        return render_template('error.html', message=genero)
+    
+    return render_template('generos/excluirgenero.html', genero=genero)
+
+@app.route("/delete_genero/<int:id>", methods=["POST"])
+def delete_genero(id):
+    ok, message = DeletarGenero(id)
+    if not ok:
+        return render_template('error.html', message=message)
+    
+    return redirect(url_for('listargeneros'))
 
 # ---------------- EMPRÉSTIMOS ----------------
 @app.route("/listaremprestimos")
@@ -258,6 +335,14 @@ def devolverlivro(id):
 
     return render_template('emprestimos/devolver.html', emprestimo=emprestimo)
 
+# Adicione esta rota para processar a devolução via POST
+@app.route("/devolver_emprestimo/<int:id>", methods=["POST"])
+def devolver_emprestimo(id):
+    ok, message = DevolverLivro(id)
+    if not ok:
+        return render_template('error.html', message=message)
+    return redirect(url_for('listaremprestimos'))
+
 @app.route("/renovar/<int:id>", methods=['GET', 'POST'])
 def renovar(id):
     if request.method == 'POST':
@@ -270,6 +355,12 @@ def renovar(id):
     if not ok:
         return render_template('error.html', message=emprestimo)
     return render_template('emprestimos/renovar.html', emprestimo=emprestimo)
+@app.route("/update_emprestimo/<int:id>", methods=["POST"])
+def update_emprestimo(id):
+    ok, message = RenovarEmprestimo(id)
+    if not ok:
+        return render_template('error.html', message=message)
+    return redirect(url_for('listaremprestimos'))
 
 @app.route("/listaratrasados")
 def listaratrasados():

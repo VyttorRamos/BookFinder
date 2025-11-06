@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listar Gêneros</title>
+    <title>Listar Categorias</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Gêneros Cadastrados</h1>
+        <h1>Categorias Cadastradas</h1>
     </header>
     <main>
         <div class="table-container">
+            {% if generos %}
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nome do Gênero</th>
+                        <th>Nome da Categoria</th>
+                        <th>Descrição</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for genero in generos %}
                     <tr>
-                        <td>{{ genero.id_genero }}</td>
-                        <td>{{ genero.nome_genero }}</td>
+                        <td>{{ genero.id_categoria }}</td>
+                        <td>{{ genero.nome }}</td>
+                        <td>{{ genero.descricao or '-' }}</td>
                         <td class="action-buttons">
-                            <a href="{{ url_for('editargenero', id=genero.id_genero) }}" class="edit-btn">Editar</a>
-                            <a href="{{ url_for('excluirgenero', id=genero.id_genero) }}" class="delete-btn">Excluir</a>
+                            <a href="{{ url_for('editargenero', id=genero.id_categoria) }}" class="edit-btn">Editar</a>
+                            <a href="{{ url_for('excluirgenero', id=genero.id_categoria) }}" class="delete-btn">Excluir</a>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <div class="no-data">
+            </div>
+            {% endif %}
         </div>
     </main>
 </body>
