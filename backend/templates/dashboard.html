@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,6 +8,7 @@
     <title>Admin - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
 </head>
+
 <body>
     <main>
         <h1>Dashboard Admin</h1>
@@ -53,12 +55,12 @@
             <div class="genre-card">
                 <h3>Editoras</h3><br>
                 <h3>
-                    <select class="admin-select" onchange="if(this.value) window.location.href=this.value">
+                    <select class="admin-select">
                         <option value="" disabled selected>Escolha uma ação</option>
-                        <option value="{{ url_for('listargeneros') }}">Listar</option>
-                        <option value="{{ url_for('cadastrargenero') }}">Cadastrar</option>
-                        <option value="{{ url_for('listargeneros') }}">Editar</option>
-                        <option value="{{ url_for('listargeneros') }}">Excluir</option>
+                        <option value="{{ url_for('listareditoras') }}">Listar</option>
+                        <option value="{{ url_for('cadastrareditora') }}">Cadastrar</option>
+                        <option value="{{ url_for('listareditoras') }}">Editar</option>
+                        <option value="{{ url_for('listareditoras') }}">Excluir</option>
                     </select>
                 </h3>
             </div>
@@ -91,4 +93,5 @@
     </main>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </html>

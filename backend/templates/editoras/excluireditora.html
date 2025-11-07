@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excluir Categoria</title>
+    <title>Excluir Editora - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Excluir Categoria</h1>
+        <h1>Excluir Editora</h1>
     </header>
+    
     <main>
         <div class="contact-container">
             <div class="warning-message">
                 <h3>Confirmar Exclusão</h3>
-                <p>Tem certeza que deseja excluir a categoria <strong>"{{ genero.nome }}"</strong>?</p>
+                <p>Tem certeza que deseja excluir a editora <strong>"{{ editora.nome }}"</strong>?</p>
                 <p class="warning-text">Esta ação não pode ser desfeita.</p>
             </div>
             
-            <form action="{{ url_for('delete_genero', id=genero.id_categoria) }}" method="POST">
+            <form action="{{ url_for('delete_editora', id=editora.id_editora) }}" method="POST">
                 <div class="form-actions">
                     <button type="submit" class="delete-btn">Confirmar Exclusão</button>
-                    <a href="{{ url_for('listargeneros') }}" class="btn-secondary">Cancelar</a>
+                    <a href="{{ url_for('listareditoras') }}" class="btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>

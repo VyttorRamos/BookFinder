@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastrar Categoria</title>
+    <title>Cadastrar Editora - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Cadastrar Categoria</h1>
+        <h1>Cadastrar Editora</h1>
     </header>
+    
     <main>
         <div class="contact-container">
             {% if error %}
@@ -19,17 +20,30 @@
             </div>
             {% endif %}
             
-            <form action="{{ url_for('cadastrargenero') }}" method="POST">
+            <form action="{{ url_for('cadastrareditora') }}" method="POST">
                 <div class="form-group">
-                    <label for="nome_genero">Nome da Categoria *</label>
-                    <input type="text" id="nome_genero" name="nome_genero" value="{{ nome_genero or '' }}" required>
+                    <label for="nome">Nome da Editora *</label>
+                    <input type="text" id="nome" name="nome" value="{{ nome or '' }}" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="descricao">Descrição</label>
-                    <textarea id="descricao" name="descricao" rows="4">{{ descricao or '' }}</textarea>
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" name="endereco" value="{{ endereco or '' }}">
                 </div>
+                
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone" value="{{ telefone or '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="{{ email or '' }}">
+                </div>
+                
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Cadastrar</button>
+                    <button type="submit" class="btn-primary">Cadastrar Editora</button>
+                    <a href="{{ url_for('listareditoras') }}" class="btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
