@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Livros - BookFinder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    <style>
+        
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🔍 Buscar Livros Online</h1>
+    </header>
+
+    <main>
+        <div class="busca-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" 
+                       placeholder="Digite título, autor ou assunto... (ex: Harry Potter, Machado de Assis)">
+                <button onclick="buscarLivros()">🔍 Buscar</button>
+            </div>
+
+            <div id="resultados">
+                <div class="loading" id="loading" style="display: none;">
+                    ⏳ Buscando livros...
+                </div>
+                <div id="livros-container"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function buscarLivros() {
+            const termo = document.getElementById('searchInput').value.trim();
+            
+            if (!termo) {
+                alert('Por favor, digite algo para buscar!');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('livros-container');
+            
+            loading.style.display = 'block';
+            container.innerHTML = '';
+
+            fetch(`/api/buscar-livros?q=${encodeURIComponent(termo)}`)
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    
+                    if (data.error) {
+                        container.innerHTML = `<div class="error">${data.error}</div>`;
+                        return;
+                    }
+
+                    if (data.livros.length === 0) {
+                        container.innerHTML = '<div class="loading">Nenhum livro encontrado. Tente outros termos.</div>';
+                        return;
+                    }
+
+                    let html = `
+                        <h3>📚 ${data.livros.length} livros encontrados para "${termo}"</h3>
+                        <div class="livros-grid">
+                    `;
+
+                    data.livros.forEach(livro => {
+                        html += `
+                            <div class="livro-card">
+                                <div class="livro-capa">
+                                    ${livro.capa ? 
+                                        `<img src="${livro.capa}" alt="${livro.titulo}">` : 
+                                        '📖'}
+                                </div>
+                                <div class="livro-info">
+                                    <h4>${livro.titulo}</h4>
+                                    <p><strong>Autor:</strong> ${livro.autores}</p>
+                                    <p><strong>Editora:</strong> ${livro.editora}</p>
+                                    <p><strong>Ano:</strong> ${livro.ano}</p>
+                                    <p class="descricao">${livro.descricao.substring(0, 100)}...</p>
+                                    <a href="${livro.link}" target="_blank" style="color: #007bff; font-size: 14px;">
+                                        🔗 Ver mais detalhes
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    container.innerHTML = `<div class="error">Erro na busca: ${error}</div>`;
+                });
+        }
+
+        // Buscar ao pressionar Enter
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarLivros();
+            }
+        });
+    </script>
+</body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</html>

@@ -17,46 +17,103 @@
 
         <div class="search-container">
             <form id="search-form">
-                <input type="text" id="search-input" placeholder="Busque por título, autor ou ISBN...">
-                <button type="submit">Buscar</button>
-            </form><br><br>
+                <input type="text" id="search-input" placeholder="Busque por título, autor ou categoria...">
+                <button type="submit">🔍 Buscar</button>
+            </form>
         </div>
 
         <section id="destaques" class="book-section">
-            <h2>Livros Recomendados</h2>
+            <h2>📚 Livros em Destaque</h2>
+            
+            {% if livros %}
             <div class="book-grid">
-                <div class="book-card">
-                    <img src="{{ url_for('static', filename='img/img.png') }}" alt="Capa do Livro 1">
+                {% for livro in livros %}
+                <div class="book-card" data-titulo="{{ livro.titulo.lower() }}" 
+                     data-categoria="{{ livro.categoria_nome.lower() if livro.categoria_nome else '' }}"
+                     data-autor="{{ livro.autor.lower() if livro.autor else '' }}">
+                    <div class="book-card-image">
+                        {% if livro.capa %}
+                            <img src="{{ livro.capa }}" alt="Capa do livro {{ livro.titulo }}">
+                        {% else %}
+                            <div class="book-placeholder">
+                                📖
+                            </div>
+                        {% endif %}
+                    </div>
                     <div class="book-card-info">
-                        <h3>Book Title 1</h3>
-                        <p>Autor 1</p>
+                        <h3>{{ livro.titulo }}</h3>
+                        <p class="book-author">
+                            {% if livro.autor %}
+                                {{ livro.autor }}
+                            {% else %}
+                                Autor não informado
+                            {% endif %}
+                        </p>
+                        <p class="book-year">
+                            {% if livro.ano_publicacao %}
+                                {{ livro.ano_publicacao }}
+                            {% endif %}
+                        </p>
+                        <p class="book-category">
+                            {% if livro.categoria_nome %}
+                                {{ livro.categoria_nome }}
+                            {% elif livro.genero %}
+                                {{ livro.genero }}
+                            {% endif %}
+                        </p>
+                        
+                        <!-- Botão Emprestar -->
+                        <button class="btn-emprestar" onclick="abrirModalEmprestimo({{ livro.id_livro }}, '{{ livro.titulo }}')">
+                            📚 Emprestar
+                        </button>
                     </div>
                 </div>
-                <div class="book-card">
-                    <img src="{{ url_for('static', filename='img/img.png') }}" alt="Capa do Livro 2">
-                    <div class="book-card-info">
-                        <h3>Book Title 2</h3>
-                        <p>Autor 2</p>
-                    </div>
-                </div>
-                <div class="book-card">
-                    <img src="{{ url_for('static', filename='img/img.png') }}" alt="Capa do Livro 3">
-                    <div class="book-card-info">
-                        <h3>Book Title 3</h3>
-                        <p>Autor 3</p>
-                    </div>
-                </div>
-                <div class="book-card">
-                    <img src="{{ url_for('static', filename='img/img.png') }}" alt="Capa do Livro 4">
-                    <div class="book-card-info">
-                        <h3>Book Title 4</h3>
-                        <p>Autor 4</p>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="no-books">
+                <p>📚 Ainda não há livros cadastrados no sistema.</p>
+                <a href="{{ url_for('cadastrarlivro') }}" class="btn-primary">Cadastrar Primeiro Livro</a>
+            </div>
+            {% endif %}
         </section>
+
+        <div class="feature-card">
+            <h3>🔍 Buscar Livros Online</h3>
+            <p>Explore milhares de livros usando a API do Google Books</p>
+            <a href="{{ url_for('buscar_livros') }}" class="btn-primary">Buscar na API</a>
+        </div>
+
+        <!-- Modal para Empréstimo -->
+        <div id="modalEmprestimo" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>📚 Realizar Empréstimo</h3>
+                <p id="livroInfo"></p>
+                
+                <form id="formEmprestimo">
+                    <input type="hidden" id="livroId" name="livro_id">
+                    
+                    <div class="form-group">
+                        <label for="usuarioSelect">Selecione o usuário:</label>
+                        <select id="usuarioSelect" name="usuario_id" required>
+                            <option value="">Selecione um usuário...</option>
+                            {% for usuario in usuarios %}
+                            <option value="{{ usuario.id_usuario }}">
+                                {{ usuario.nome_completo }} - {{ usuario.email }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">✅ Confirmar Empréstimo</button>
+                        <button type="button" class="btn-secondary" onclick="fecharModal()">❌ Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
 </html>

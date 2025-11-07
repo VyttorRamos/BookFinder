@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 import random
+import requests
 
 # Importação dos modelos
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario)
@@ -14,6 +15,8 @@ from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarL
 from generoModel import (ListarGeneros, CadastrarGenero, PegaGeneroPorId, AtualizarGenero, DeletarGenero)
 from emprestimoModel import (ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados)
 from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta)
+from editoraModel import (ListarEditoras, CadastrarEditora, PegaEditoraPorId, AtualizarEditora, DeletarEditora)
+
 
 load_dotenv()
 
@@ -30,6 +33,53 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(seconds=RefreshExpirado)
 jwt = JWTManager(app)
 
 CORS(app)
+
+
+
+@app.route("/buscar-livros")
+def buscar_livros():
+    """Página simples de busca na API do Google Books"""
+    return render_template('buscar_livros.html')
+
+@app.route("/api/buscar-livros")
+def api_buscar_livros():
+    """API que busca livros no Google Books"""
+    termo = request.args.get('q', '')
+    
+    if not termo:
+        return jsonify({"error": "Digite um termo para busca"}), 400
+    
+    try:
+        # API do Google Books (não precisa de chave!)
+        url = f"https://www.googleapis.com/books/v1/volumes"
+        params = {
+            'q': termo,
+            'maxResults': 12,  # Limite de resultados
+            'langRestrict': 'pt'  # Livros em português
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        dados = response.json()
+        
+        livros = []
+        for item in dados.get('items', []):
+            info = item.get('volumeInfo', {})
+            livro = {
+                'id': item.get('id'),
+                'titulo': info.get('title', 'Título não disponível'),
+                'autores': ', '.join(info.get('authors', ['Autor desconhecido'])),
+                'editora': info.get('publisher', 'Editora não informada'),
+                'ano': info.get('publishedDate', '')[:4] if info.get('publishedDate') else 'N/A',
+                'descricao': info.get('description', 'Descrição não disponível.'),
+                'capa': info.get('imageLinks', {}).get('thumbnail', ''),
+                'link': info.get('infoLink', '#')
+            }
+            livros.append(livro)
+        
+        return jsonify({"livros": livros})
+        
+    except Exception as e:
+        return jsonify({"error": f"Erro na busca: {str(e)}"}), 500
 
 # Função para gerar CAPTCHA
 def gerar_captcha():
@@ -56,7 +106,25 @@ def gerar_captcha():
 # --- ROTAS HTML ---
 @app.route("/")
 def home():
-    return render_template('index.html')
+    """Página inicial com livros do banco de dados"""
+    # Buscar os últimos livros cadastrados
+    ok, livros = ListarLivros()
+    
+    # Buscar usuários para o empréstimo
+    ok_usuarios, usuarios = ListarUsuarios()
+    
+    # Se der erro, mostra página sem livros
+    if not ok:
+        livros = []
+    if not ok_usuarios:
+        usuarios = []
+    
+    # Pegar apenas os primeiros 8 livros para exibir
+    livros_destaque = livros[:8] if livros else []
+    
+    return render_template('index.html', 
+                         livros=livros_destaque, 
+                         usuarios=usuarios)
 
 @app.route("/generos")
 def generos():
@@ -188,6 +256,100 @@ def delete_user(id):
     if not ok:
         return render_template('error.html', message=message)
     return redirect(url_for('listaruser'))
+
+# ---------------- EDITORAS ----------------
+@app.route("/listareditoras")
+def listareditoras():
+    ok, editoras = ListarEditoras()
+    if not ok:
+        return render_template('error.html', message=editoras)
+    return render_template('editoras/listareditoras.html', editoras=editoras)
+
+@app.route("/cadastrareditora", methods=["GET", "POST"])
+def cadastrareditora():
+    if request.method == "POST":
+        nome = request.form['nome'].strip()
+        endereco = request.form.get('endereco', '').strip()
+        telefone = request.form.get('telefone', '').strip()
+        email = request.form.get('email', '').strip()
+        
+        if not nome:
+            return render_template('editoras/cadastrareditora.html', 
+                                 error="Nome da editora é obrigatório")
+        
+        ok, message = CadastrarEditora(nome, endereco, telefone, email)
+        if not ok:
+            return render_template('editoras/cadastrareditora.html', 
+                                 error=message, nome=nome, endereco=endereco, 
+                                 telefone=telefone, email=email)
+        
+        return redirect(url_for('listareditoras'))
+    
+    return render_template('editoras/cadastrareditora.html')
+
+@app.route("/editareditora/<int:id>", methods=["GET", "POST"])
+def editareditora(id):
+    if request.method == "POST":
+        nome = request.form['nome'].strip()
+        endereco = request.form.get('endereco', '').strip()
+        telefone = request.form.get('telefone', '').strip()
+        email = request.form.get('email', '').strip()
+        
+        if not nome:
+            ok, editora = PegaEditoraPorId(id)
+            if not ok:
+                return render_template('error.html', message=editora)
+            return render_template('editoras/editareditora.html', 
+                                 editora=editora, error="Nome da editora é obrigatório")
+        
+        ok, message = AtualizarEditora(id, nome, endereco, telefone, email)
+        if not ok:
+            ok, editora = PegaEditoraPorId(id)
+            if not ok:
+                return render_template('error.html', message=editora)
+            return render_template('editoras/editareditora.html', 
+                                 editora=editora, error=message)
+        
+        return redirect(url_for('listareditoras'))
+    
+    # GET - Carregar dados da editora
+    ok, editora = PegaEditoraPorId(id)
+    if not ok:
+        return render_template('error.html', message=editora)
+    
+    return render_template('editoras/editareditora.html', editora=editora)
+
+@app.route("/update_editora/<int:id>", methods=["POST"])
+def update_editora(id):
+    nome = request.form['nome'].strip()
+    endereco = request.form.get('endereco', '').strip()
+    telefone = request.form.get('telefone', '').strip()
+    email = request.form.get('email', '').strip()
+    
+    if not nome:
+        return render_template('error.html', message="Nome da editora é obrigatório")
+    
+    ok, message = AtualizarEditora(id, nome, endereco, telefone, email)
+    if not ok:
+        return render_template('error.html', message=message)
+    
+    return redirect(url_for('listareditoras'))
+
+@app.route("/excluireditora/<int:id>")
+def excluireditora(id):
+    ok, editora = PegaEditoraPorId(id)
+    if not ok:
+        return render_template('error.html', message=editora)
+    
+    return render_template('editoras/excluireditora.html', editora=editora)
+
+@app.route("/delete_editora/<int:id>", methods=["POST"])
+def delete_editora(id):
+    ok, message = DeletarEditora(id)
+    if not ok:
+        return render_template('error.html', message=message)
+    
+    return redirect(url_for('listareditoras'))
 
 # ---------------- LIVROS ----------------
 @app.route("/listarlivro")

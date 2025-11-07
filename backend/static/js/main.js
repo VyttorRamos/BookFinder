@@ -296,3 +296,87 @@ document.addEventListener('DOMContentLoaded', () => {
         init();
     }
 })();
+    // Função de busca em tempo real
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const bookCards = document.querySelectorAll('.book-card');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            bookCards.forEach(card => {
+                const titulo = card.getAttribute('data-titulo');
+                const categoria = card.getAttribute('data-categoria');
+                const autor = card.getAttribute('data-autor');
+                
+                const matches = titulo.includes(searchTerm) || 
+                               categoria.includes(searchTerm) || 
+                               autor.includes(searchTerm);
+                
+                if (matches || searchTerm === '') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Configurar o formulário de busca para não recarregar a página
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // A busca já funciona em tempo real, então não precisa fazer nada extra
+        });
+    });
+    
+    // Funções do modal de empréstimo
+    const modal = document.getElementById('modalEmprestimo');
+    
+    function abrirModalEmprestimo(livroId, livroTitulo) {
+        document.getElementById('livroId').value = livroId;
+        document.getElementById('livroInfo').textContent = `Livro: ${livroTitulo}`;
+        modal.style.display = 'block';
+    }
+    
+    function fecharModal() {
+        modal.style.display = 'none';
+        document.getElementById('formEmprestimo').reset();
+    }
+    
+    // Fechar modal ao clicar no X
+    document.querySelector('.close').addEventListener('click', fecharModal);
+    
+    // Fechar modal ao clicar fora dele
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            fecharModal();
+        }
+    });
+    
+    // Processar formulário de empréstimo
+    document.getElementById('formEmprestimo').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const livroId = formData.get('livro_id');
+        const usuarioId = formData.get('usuario_id');
+        
+        try {
+            const response = await fetch('/emprestar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id_livro=${livroId}&id_usuario=${usuarioId}`
+            });
+            
+            if (response.ok) {
+                alert('✅ Empréstimo realizado com sucesso!');
+                fecharModal();
+            } else {
+                const error = await response.text();
+                alert('❌ Erro ao realizar empréstimo: ' + error);
+            }
+        } catch (error) {
+            alert('❌ Erro de rede: ' + error);
+        }
+    });
