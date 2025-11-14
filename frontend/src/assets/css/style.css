@@ -1,3 +1,5 @@
+/* Copied from backend static css/style.css - minor path adjustments for React */
+
 /* Reset básico */
 * {
     margin: 0;
@@ -14,7 +16,6 @@ body {
     min-height: 100vh;
 }
 
-/* HEADER E NAVEGAÇÃO */
 header {
     width: 100%;
 }
@@ -57,7 +58,6 @@ nav {
     text-decoration: underline;
 }
 
-/* CONTEÚDO PRINCIPAL */
 main {
     flex: 1;
     max-width: 1200px;
@@ -89,7 +89,6 @@ a:hover {
     text-decoration: none;
 }
 
-/* FORMULÁRIOS E INPUTS */
 select {
     width: 100%;
     padding: 10px 15px;
@@ -109,7 +108,6 @@ option {
     padding: 10px;
 }
 
-/* BOTÕES */
 .btn-primary {
     background: #02be92;
     color: white;
@@ -144,7 +142,6 @@ option {
     background: #5a6268;
 }
 
-/* MODAL */
 .modal {
     display: none;
     position: fixed;
@@ -225,7 +222,6 @@ option {
     font-weight: 600;
 }
 
-/* FOOTER */
 footer {
     background-color: #333;
     color: #fff;
@@ -240,7 +236,7 @@ footer {
 }
 
 .footer-content p {
-    margin: 0 0 10px;
+    margin: 0 0 10px 0;
     font-size: 1rem;
 }
 
@@ -262,7 +258,6 @@ footer {
     text-decoration: underline;
 }
 
-/* UTILITÁRIOS */
 .hidden {
     display: none;
 }

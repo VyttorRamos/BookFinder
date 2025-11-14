@@ -81,6 +81,106 @@ def api_buscar_livros():
     except Exception as e:
         return jsonify({"error": f"Erro na busca: {str(e)}"}), 500
 
+
+@app.route("/api/listar-livros")
+def api_listar_livros():
+    """Retorna os livros do banco em JSON"""
+    ok, livros = ListarLivros()
+    if not ok:
+        return jsonify({"error": livros}), 500
+
+    # Normalizar campos mínimos esperados pelo frontend
+    out = []
+    for l in livros:
+        out.append({
+            "id": l.get("id_livro"),
+            "titulo": l.get("titulo"),
+            "autor": l.get("autor") or l.get("editora_nome") or '',
+            "categoria": l.get("categoria_nome") or l.get("nome_genero") or '',
+            "ano": l.get("ano_publicacao") or '',
+            "capa": l.get("capa") if l.get("capa") else ''
+        })
+
+    return jsonify({"livros": out}), 200
+
+
+@app.route('/api/livros', methods=['GET', 'POST'])
+def api_livros():
+    if request.method == 'GET':
+        ok, livros = ListarLivros()
+        if not ok:
+            return jsonify({'error': livros}), 500
+        out = []
+        for l in livros:
+            out.append({
+                'id': l.get('id_livro'),
+                'titulo': l.get('titulo'),
+                'autor': l.get('autor') or '',
+                'categoria': l.get('categoria_nome') or '',
+                'ano': l.get('ano_publicacao') or '',
+                'capa': l.get('capa') if l.get('capa') else ''
+            })
+        return jsonify({'livros': out}), 200
+
+    # POST - criar livro (espera JSON)
+    data = request.get_json() or {}
+    titulo = data.get('titulo')
+    isbn = data.get('isbn')
+    ano_publicacao = data.get('ano_publicacao')
+    id_editora = data.get('id_editora')
+    id_categoria = data.get('id_categoria')
+
+    if not titulo:
+        return jsonify({'error': 'titulo é obrigatório'}), 400
+
+    ok, res = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria)
+    if not ok:
+        return jsonify({'error': res}), 500
+
+    return jsonify({'message': res}), 201
+
+
+@app.route('/api/livros/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def api_livro_detail(id):
+    if request.method == 'GET':
+        ok, livro = PegaLivroPorId(id)
+        if not ok:
+            return jsonify({'error': livro}), 404
+        out = {
+            'id': livro.get('id_livro'),
+            'titulo': livro.get('titulo'),
+            'isbn': livro.get('isbn'),
+            'ano': livro.get('ano_publicacao'),
+            'id_editora': livro.get('id_editora'),
+            'id_categoria': livro.get('id_categoria'),
+            'autor': livro.get('autor') or '',
+            'categoria': livro.get('categoria_nome') or '',
+            'capa': livro.get('capa') if livro.get('capa') else ''
+        }
+        return jsonify(out), 200
+
+    if request.method == 'PUT':
+        data = request.get_json() or {}
+        titulo = data.get('titulo')
+        isbn = data.get('isbn')
+        ano_publicacao = data.get('ano_publicacao')
+        id_editora = data.get('id_editora')
+        id_categoria = data.get('id_categoria')
+
+        if not titulo:
+            return jsonify({'error': 'titulo é obrigatório'}), 400
+
+        ok, res = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
+        if not ok:
+            return jsonify({'error': res}), 500
+        return jsonify({'message': res}), 200
+
+    # DELETE
+    ok, res = DeletarLivro(id)
+    if not ok:
+        return jsonify({'error': res}), 500
+    return jsonify({'message': res}), 200
+
 # Função para gerar CAPTCHA
 def gerar_captcha():
     operadores = ['+', '-', '*']
