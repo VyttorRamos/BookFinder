@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { authFetch } from '../../hooks/useAuth';
 
 const API_BASE = 'http://127.0.0.1:5000';
 
@@ -13,7 +14,7 @@ export default function ExcluirLivro(){
     let mounted = true;
     async function load(){
       try{
-        const res = await fetch(`${API_BASE}/api/livros/${id}`);
+        const res = await authFetch(`${API_BASE}/api/livros/${id}`);
         const json = await res.json();
         if(!mounted) return;
         if(res.ok) setLivro(json);
@@ -28,7 +29,7 @@ export default function ExcluirLivro(){
   async function handleDelete(){
     if(!confirm('Confirma exclusão do livro?')) return;
     try{
-      const res = await fetch(`${API_BASE}/api/livros/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`${API_BASE}/api/livros/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if(res.ok){ alert(json.message || 'Excluído'); navigate('/livros/listarlivro'); }
       else alert(json.error || 'Erro ao excluir');

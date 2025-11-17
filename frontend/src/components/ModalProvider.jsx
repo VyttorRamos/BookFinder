@@ -1,4 +1,6 @@
-import React, { createContext, useCallback, useState } from 'react';
+import React, { createContext, useCallback, useState, useContext } from 'react';
+import { MessageContext } from './MessageProvider';
+import { authFetch } from '../hooks/useAuth';
 
 export const ModalContext = createContext({ openEmprestimo: () => {} });
 
@@ -22,22 +24,24 @@ export default function ModalProvider({ children }) {
     const livroId = form.livro_id.value;
     const usuarioId = form.usuario_id.value;
     try {
-      const response = await fetch('/emprestar', {
+      const response = await authFetch('http://127.0.0.1:5000/api/emprestimos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `id_livro=${encodeURIComponent(livroId)}&id_usuario=${encodeURIComponent(usuarioId)}`,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_livro: livroId, id_usuario: usuarioId }),
       });
+      const data = await response.json().catch(() => ({}));
       if (response.ok) {
-        alert('✅ Empréstimo realizado com sucesso!');
+        showMessage(data.message || 'Empréstimo realizado com sucesso!');
         close();
       } else {
-        const error = await response.text();
-        alert('❌ Erro ao realizar empréstimo: ' + error);
+        showMessage(data.error || 'Erro ao realizar empréstimo', true);
       }
     } catch (err) {
-      alert('❌ Erro de rede: ' + err);
+      showMessage('❌ Erro de rede: ' + err, true);
     }
   };
+
+  const { showMessage } = useContext(MessageContext);
 
   return (
     <ModalContext.Provider value={{ openEmprestimo }}>

@@ -232,24 +232,25 @@ async function Login(e) {
 function verificarLogin() {
     const token = localStorage.getItem('bf_access');
     if (token) {
-        // Se está na página de login e já tem token, redireciona
-        if (window.location.pathname === '/login') {
-            window.location.href = '/';
-        }
-        
-        // Atualiza header para mostrar opção de logout
+        // Não redirecionar automaticamente se usuário já estiver logado.
+        // Apenas atualiza o menu para exibir opção de logout quando aplicável.
         const menu = document.querySelector('.menu');
         if (menu) {
             const loginItem = menu.querySelector('a[href="/login"]');
             if (loginItem) {
                 loginItem.textContent = 'Sair';
                 loginItem.href = '#';
-                loginItem.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    localStorage.removeItem('bf_access');
-                    localStorage.removeItem('bf_refresh');
-                    window.location.href = '/';
-                });
+                // Remover listeners duplicados antes de adicionar
+                loginItem.replaceWith(loginItem.cloneNode(true));
+                const newLoginItem = menu.querySelector('a[href="#"]');
+                if (newLoginItem) {
+                    newLoginItem.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        localStorage.removeItem('bf_access');
+                        localStorage.removeItem('bf_refresh');
+                        window.location.href = '/';
+                    });
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { authFetch } from '../../hooks/useAuth';
 
 const API_BASE = 'http://127.0.0.1:5000';
 
@@ -12,7 +13,7 @@ export default function ListarLivro(){
     let mounted = true;
     async function load(){
       try{
-        const res = await fetch(API_BASE + '/api/livros');
+        const res = await authFetch(API_BASE + '/api/livros');
         const json = await res.json();
         if(!mounted) return;
         if(res.ok) setLivros(json.livros || []);
@@ -28,7 +29,7 @@ export default function ListarLivro(){
   async function handleDelete(id){
     if(!confirm('Confirma exclusão do livro?')) return;
     try{
-      const res = await fetch(`${API_BASE}/api/livros/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`${API_BASE}/api/livros/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if(res.ok){
         setLivros(prev => prev.filter(l=> l.id !== id));

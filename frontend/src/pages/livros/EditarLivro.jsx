@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { authFetch } from '../../hooks/useAuth';
 
 const API_BASE = 'http://127.0.0.1:5000';
 
@@ -19,7 +20,7 @@ export default function EditarLivro(){
     let mounted = true;
     async function load(){
       try{
-        const res = await fetch(`${API_BASE}/api/livros/${id}`);
+        const res = await authFetch(`${API_BASE}/api/livros/${id}`);
         const json = await res.json();
         if(!mounted) return;
         if(res.ok){
@@ -45,7 +46,7 @@ export default function EditarLivro(){
     if(!titulo) return alert('Título é obrigatório');
     setSaving(true);
     try{
-      const res = await fetch(`${API_BASE}/api/livros/${id}`, {
+      const res = await authFetch(`${API_BASE}/api/livros/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ titulo, isbn, ano_publicacao: ano, id_editora: idEditora, id_categoria: idCategoria })

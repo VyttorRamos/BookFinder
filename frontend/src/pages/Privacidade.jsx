@@ -2,9 +2,21 @@ import React from 'react';
 
 export default function Privacidade(){
   return (
-    <div className="text-page">
+    <div className="container text-container">
       <h1>Política de Privacidade</h1>
-      <p>Conteúdo migrado de `privacidade.html`.</p>
+      <p>Sua privacidade é importante para nós. É política do BookFinder respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar no site BookFinder.</p>
+
+      <h2>1. Informações que Coletamos</h2>
+      <p>Solicitamos informações pessoais apenas quando realmente precisamos delas para lhe fornecer um serviço. Fazemo-lo por meios justos e legais, com o seu conhecimento e consentimento. Também informamos por que estamos coletando e como será usado.</p>
+
+      <h2>2. Uso de Dados</h2>
+      <p>Apenas retemos as informações coletadas pelo tempo necessário para fornecer o serviço solicitado. Quando armazenamos dados, protegemos dentro de meios comercialmente aceitáveis para evitar perdas e roubos, bem como acesso, divulgação, cópia, uso ou modificação não autorizados.</p>
+
+      <h2>3. Cookies</h2>
+      <p>Como é prática comum em quase todos os sites profissionais, este site usa cookies, que são pequenos arquivos baixados no seu computador, para melhorar sua experiência. Esta página descreve quais informações eles coletam, como as usamos e por que às vezes precisamos armazenar esses cookies.</p>
+
+      <h2>4. Links para Sites de Terceiros</h2>
+      <p>O nosso site pode ter links para sites externos que não são operados por nós. Esteja ciente de que não temos controle sobre o conteúdo e práticas desses sites e não podemos aceitar responsabilidade por suas respectivas políticas de privacidade.</p>
     </div>
   );
 }

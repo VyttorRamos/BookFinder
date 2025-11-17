@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { authFetch } from '../hooks/useAuth';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -22,7 +23,7 @@ export default function Search() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/buscar-livros?q=${encodeURIComponent(term)}`);
+      const res = await authFetch(`${API_BASE}/api/buscar-livros?q=${encodeURIComponent(term)}`);
       const json = await res.json();
       if (res.ok) {
         setResults(json.livros || []);

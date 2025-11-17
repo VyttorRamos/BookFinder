@@ -42,6 +42,19 @@ nav {
     gap: 20px;
 }
 
+/* Mobile menu state when toggle active */
+.menu.mobile-open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
 .menu li a {
     color: #fff;
     text-decoration: none;
@@ -125,6 +138,15 @@ option {
     background: #008966;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Navbar scrolled state (applies to React header with .navbar class) */
+.navbar {
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.navbar.scrolled {
+    background: rgba(255,255,255,0.98) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important;
 }
 
 .btn-secondary {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../../hooks/useAuth';
 
 const API_BASE = 'http://127.0.0.1:5000';
 
@@ -17,7 +18,7 @@ export default function CadastrarLivro(){
     if(!titulo) return alert('Título é obrigatório');
     setLoading(true);
     try{
-      const res = await fetch(API_BASE + '/api/livros', {
+      const res = await authFetch(API_BASE + '/api/livros', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ titulo, isbn, ano_publicacao: ano, id_editora: idEditora, id_categoria: idCategoria })
