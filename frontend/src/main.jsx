@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 
 import './assets/css/style.css';
@@ -12,10 +12,14 @@ import './assets/css/tabelas.css';
 import './assets/css/generos.css';
 import './assets/css/contato.css';
 
+const router = createBrowserRouter([
+  { path: '/*', element: <App /> }
+], {
+  future: { v7_startTransition: true }
+});
+
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );

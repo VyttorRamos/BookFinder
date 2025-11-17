@@ -146,6 +146,10 @@ img {
     transition: var(--transition);
 }
 
+.navbar {
+    height: var(--navbar-height);
+}
+
 .navbar.scrolled {
     background: rgba(255, 255, 255, 0.98);
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
@@ -221,8 +225,8 @@ img {
 }
 
 .mobile-menu {
-    position: fixed;
-    top: 70px;
+            position: fixed;
+            top: var(--navbar-height);
     left: 0;
     width: 100%;
     background: var(--white);
@@ -260,10 +264,14 @@ img {
 
 /* Hero Section */
 .hero {
-    padding: 150px 0 100px;
+    /* make hero full-bleed and full-height (under navbar) */
+    padding: 0;
     background: var(--gradient-light);
     position: relative;
     overflow: hidden;
+    min-height: calc(100vh - var(--navbar-height));
+    display: flex;
+    align-items: center;
 }
 
 .hero::before {
@@ -281,6 +289,13 @@ img {
     align-items: center;
     justify-content: space-between;
     gap: 40px;
+}
+
+/* make .container inside hero full width so the colored block spans full viewport */
+.hero .container {
+    width: 100%;
+    max-width: none;
+    padding: 60px 5%;
 }
 
 .hero-text {
@@ -702,4 +717,124 @@ img {
     margin: 15px 0;
     text-align: center;
     font-weight: 500;
+}
+
+/* Adicione estas regras ao seu home.css existente */
+
+/* Login Full Width Section */
+.login-fullwidth {
+    background: var(--gradient);
+    color: var(--white);
+    padding: 100px 0;
+    width: 100%;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-fullwidth::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.login-fullwidth-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.login-fullwidth-text h2 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-fullwidth-text p {
+    font-size: 1.3rem;
+    margin-bottom: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-large {
+    padding: 16px 45px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    background: var(--white);
+    color: var(--primary);
+    border: none;
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
+.btn-large:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(255, 255, 255, 0.4);
+}
+
+/* Efeitos visuais adicionais */
+.login-fullwidth::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 15s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .login-fullwidth {
+        padding: 80px 0;
+    }
+    
+    .login-fullwidth-text h2 {
+        font-size: 2.5rem;
+    }
+    
+    .login-fullwidth-text p {
+        font-size: 1.1rem;
+    }
+    
+    .btn-large {
+        padding: 14px 35px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-fullwidth {
+        padding: 60px 0;
+    }
+    
+    .login-fullwidth-text h2 {
+        font-size: 2rem;
+    }
+    
+    .login-fullwidth-text p {
+        font-size: 1rem;
+    }
+    
+    .btn-large {
+        padding: 12px 30px;
+        font-size: 1rem;
+    }
+}
+
+/* Remove a seção login original se ainda existir */
+.login {
+    display: none;
 }

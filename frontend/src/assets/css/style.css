@@ -1,5 +1,9 @@
 /* Copied from backend static css/style.css - minor path adjustments for React */
 
+:root {
+    --navbar-height: 90px; /* adjusted height of fixed navbar to match header */
+}
+
 /* Reset básico */
 * {
     margin: 0;
@@ -71,13 +75,20 @@ nav {
     text-decoration: underline;
 }
 
+/* Main content offset to account for fixed navbar */
+/* Main content offset to account for fixed navbar */
 main {
     flex: 1;
     max-width: 1200px;
     width: 90%;
-    margin: 40px auto;
-    padding: 0 20px;
+    margin: 0 auto;
+    padding: calc(var(--navbar-height) + 16px) 20px 40px 20px;
     text-align: center;
+}
+
+/* Ensure anchor scrolling doesn't hide section headings behind fixed navbar */
+html {
+    scroll-padding-top: var(--navbar-height);
 }
 
 h1 {

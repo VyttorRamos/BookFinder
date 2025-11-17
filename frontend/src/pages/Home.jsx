@@ -31,6 +31,32 @@ export default function Home() {
     return () => { mounted = false; };
   }, []);
 
+  // Animations: reveal elements with .fade-in when they enter viewport
+  useEffect(() => {
+    const elems = Array.from(document.querySelectorAll('.fade-in'));
+    if (!('IntersectionObserver' in window)) {
+      // Fallback: reveal all
+      elems.forEach(el => el.classList.add('visible'));
+      return;
+    }
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    elems.forEach(el => obs.observe(el));
+
+    // cleanup
+    return () => {
+      try { obs.disconnect(); } catch (e) {}
+    };
+  }, [loading, books]);
+
   const filtered = books.filter(b => {
     const q = query.toLowerCase().trim();
     if (!q) return true;
@@ -163,16 +189,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Login Section */}
-      <section id="login" className="login">
-        <div className="container">
-          <div className="section-title fade-in">
+      {/* Login Section - FULL WIDTH */}
+      <section id="login" className="login-fullwidth">
+        <div className="login-fullwidth-content">
+          <div className="login-fullwidth-text fade-in">
             <h2>Pronto para Explorar?</h2>
             <p>Acesse nossa plataforma e descubra um mundo de conhecimento ao seu alcance</p>
-          </div>
-
-          <div className="fade-in">
-            <a href="/login" className="btn">Entrar no Sistema</a>
+            <a href="/login" className="btn btn-primary btn-large">Entrar no Sistema</a>
           </div>
         </div>
       </section>
