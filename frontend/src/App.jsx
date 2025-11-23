@@ -8,6 +8,7 @@ import AdminSelects from './components/AdminSelects';
 import CaptchaHandler from './components/CaptchaHandler';
 import RequireAdmin from './components/RequireAdmin';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Search from './pages/Search';
@@ -64,8 +65,8 @@ export default function App() {
           <Header />
           <main>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/home" element={<Navigate to="/" replace />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/busca" element={<Search />} />

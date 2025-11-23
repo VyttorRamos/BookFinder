@@ -32,14 +32,26 @@ export default function Header() {
           </Link>
 
           <div className={`nav-links ${mobileOpen ? 'mobile-open' : ''}`}>
-            <Link to="/" className={isActive('/') ? 'active' : ''}>Início</Link>
-            <Link to="/generos" className={isActive('/generos') ? 'active' : ''}>Gêneros</Link>
-            <Link to="/sobre" className={isActive('/sobre') ? 'active' : ''}>Sobre</Link>
-            <Link to="/contato" className={isActive('/contato') ? 'active' : ''}>Contato</Link>
-            {localStorage.getItem('bf_access') ? (
-              <a href="#" onClick={handleLogout} className="btn btn-outline">Sair</a>
+            {/* If we're on the content 'home' page, show anchors to sections + Entrar */}
+            {pathname === '/home' ? (
+              <>
+                <a href="#about" onClick={() => setMobileOpen(false)}>Sobre</a>
+                <a href="#benefits" onClick={() => setMobileOpen(false)}>Benefícios</a>
+                <a href="#catalog" onClick={() => setMobileOpen(false)}>Catálogo</a>
+                <Link to="/login" className="btn btn-primary" onClick={() => setMobileOpen(false)}>Entrar</Link>
+              </>
             ) : (
-              <Link to="/login" className={`btn btn-outline ${isActive('/login') ? 'active' : ''}`}>Entre</Link>
+              <>
+                <Link to="/home" className={isActive('/home') ? 'active' : ''}>Início</Link>
+                <Link to="/generos" className={isActive('/generos') ? 'active' : ''}>Gêneros</Link>
+                <Link to="/sobre" className={isActive('/sobre') ? 'active' : ''}>Sobre</Link>
+                <Link to="/contato" className={isActive('/contato') ? 'active' : ''}>Contato</Link>
+                {localStorage.getItem('bf_access') ? (
+                  <a href="#" onClick={handleLogout} className="btn btn-outline">Sair</a>
+                ) : (
+                  <Link to="/login" className={`btn btn-outline ${isActive('/login') ? 'active' : ''}`}>Entre</Link>
+                )}
+              </>
             )}
           </div>
         </div>

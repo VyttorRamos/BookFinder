@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminSelects() {
+  const navigate = useNavigate();
+
   useEffect(() => {
     function init() {
       const selects = document.querySelectorAll('.admin-select');
@@ -8,7 +11,8 @@ export default function AdminSelects() {
         function onChange(e) {
           const url = (e.target && e.target.value) ? e.target.value.trim() : '';
           if (!url) return;
-          window.location.href = url;
+          // Use SPA navigation
+          navigate(url);
         }
         select.addEventListener('change', onChange);
         // store listener reference for cleanup
@@ -24,7 +28,7 @@ export default function AdminSelects() {
         if (select.__bf_onchange) select.removeEventListener('change', select.__bf_onchange);
       });
     };
-  }, []);
+  }, [navigate]);
 
   return null;
 }
