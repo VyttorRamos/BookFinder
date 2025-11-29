@@ -1,119 +1,487 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <title>BookFinder</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookFinder - Encontre sua próxima história</title>
+    <style>
+        /* --- CSS PURO (Reset e Variáveis) --- */
+        :root {
+            --primary: #f59e0b; /* Amber-500 equivalent */
+            --primary-dark: #d97706;
+            --secondary: #1e293b; /* Slate-800 */
+            --text-main: #334155; /* Slate-700 */
+            --text-light: #64748b; /* Slate-500 */
+            --bg-light: #f8fafc; /* Slate-50 */
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-main);
+            background-color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; transition: color 0.3s; }
+        ul { list-style: none; }
+        button { cursor: pointer; border: none; font-family: inherit; }
+
+        /* --- UTILITÁRIOS --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        /* Atualização: .btn agora funciona tanto em <button> quanto em <a> */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            cursor: pointer;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+        .btn-primary:hover { background-color: var(--primary-dark); box-shadow: var(--shadow-lg); }
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid #e2e8f0;
+            color: var(--text-main);
+        }
+        .btn-outline:hover { background-color: var(--bg-light); border-color: #cbd5e1; }
+        .section-padding { padding: 80px 0; }
+        .hidden { display: none !important; }
+
+        /* --- ÍCONES SVG (Classes auxiliares) --- */
+        .icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .icon-sm { width: 18px; height: 18px; }
+        .icon-lg { width: 32px; height: 32px; }
+
+        /* =========================================
+           LANDING PAGE STYLES
+           ========================================= */
+        
+        /* Header LP */
+        .lp-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #f1f5f9;
+            z-index: 1000;
+            height: 80px;
+            display: flex;
+            align-items: center;
+        }
+        .lp-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary);
+            cursor: pointer;
+        }
+        .logo-icon {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+        }
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        .nav-link {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .nav-link:hover { color: var(--primary); }
+
+        /* Menu Mobile */
+        .mobile-menu-btn { display: none; background: none; color: var(--text-main); }
+        .mobile-nav {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            flex-direction: column;
+            gap: 15px;
+            display: none;
+        }
+        .mobile-nav.active { display: flex; }
+
+        /* Hero Section */
+        .hero {
+            padding-top: 140px;
+            padding-bottom: 80px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            min-height: 80vh;
+        }
+        .hero-content { flex: 1; }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: #fffbeb; /* Amber-50 */
+            color: #b45309; /* Amber-700 */
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .hero-title {
+            font-family: var(--font-serif);
+            font-size: 3.5rem;
+            line-height: 1.1;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        .hero-title span { color: var(--primary); position: relative; }
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+        .hero-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        /* Efeito de livro 3D CSS puro */
+        .book-card {
+            width: 300px;
+            height: 450px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 10px 20px 20px 10px;
+            box-shadow: 20px 20px 50px rgba(0,0,0,0.3);
+            position: relative;
+            transform: rotate(-5deg);
+            transition: transform 0.5s;
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-left: 12px solid #334155; /* Lombada */
+        }
+        .book-card:hover { transform: rotate(0deg) scale(1.02); }
+        .book-title { font-family: var(--font-serif); font-size: 2.5rem; line-height: 1; }
+        .decoration-circle {
+            position: absolute;
+            z-index: -1;
+            width: 400px;
+            height: 400px;
+            background-color: #fef3c7; /* Amber-100 */
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Features Section */
+        .features { background-color: var(--bg-light); }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-subtitle { color: var(--primary); text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; display: block; margin-bottom: 10px; }
+        .section-title { font-family: var(--font-serif); font-size: 2.5rem; color: var(--secondary); }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid #f1f5f9;
+            transition: box-shadow 0.3s;
+        }
+        .feature-card:hover { box-shadow: var(--shadow-lg); }
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #fffbeb;
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .feature-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 15px; color: var(--secondary); }
+
+        /* Mission Section */
+        .mission { text-align: center; background: white; }
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .stat-item h4 { font-size: 2rem; color: var(--secondary); font-weight: 800; }
+        .stat-item p { text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-light); }
+
+        /* Footer */
+        .lp-footer { background-color: white; border-top: 1px solid #f1f5f9; padding: 40px 0; margin-top: 60px; }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .social-links { display: flex; gap: 20px; font-size: 0.9rem; color: var(--text-light); }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .hero { flex-direction: column; text-align: center; padding-top: 100px; }
+            .hero-buttons { justify-content: center; }
+            .hero-title { font-size: 2.5rem; }
+            .stats-grid { gap: 30px; }
+        }
+    </style>
 </head>
-
 <body>
-    <main>
-        <h1>Bem-vindo ao BookFinder</h1>
-        <p>Encontre seus livros favoritos de forma rápida e fácil. Explore nosso catálogo e descubra novas leituras para
-            todos os gostos.</p>
 
-        <div class="search-container">
-            <form id="search-form">
-                <input type="text" id="search-input" placeholder="Busque por título, autor ou categoria...">
-                <button type="submit">🔍 Buscar</button>
-            </form>
-        </div>
-
-        <section id="destaques" class="book-section">
-            <h2>📚 Livros em Destaque</h2>
-            
-            {% if livros %}
-            <div class="book-grid">
-                {% for livro in livros %}
-                <div class="book-card" data-titulo="{{ livro.titulo.lower() }}" 
-                     data-categoria="{{ livro.categoria_nome.lower() if livro.categoria_nome else '' }}"
-                     data-autor="{{ livro.autor.lower() if livro.autor else '' }}">
-                    <div class="book-card-image">
-                        {% if livro.capa %}
-                            <img src="{{ livro.capa }}" alt="Capa do livro {{ livro.titulo }}">
-                        {% else %}
-                            <div class="book-placeholder">
-                                📖
-                            </div>
-                        {% endif %}
+    <!-- =========================================
+         LANDING PAGE (ID: landing-page)
+         ========================================= -->
+    <div id="landing-page">
+        <!-- Header Exclusivo LP -->
+        <header class="lp-header">
+            <div class="container lp-nav">
+                <div class="logo" onclick="window.scrollTo(0,0)">
+                    <div class="logo-icon">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                     </div>
-                    <div class="book-card-info">
-                        <h3>{{ livro.titulo }}</h3>
-                        <p class="book-author">
-                            {% if livro.autor %}
-                                {{ livro.autor }}
-                            {% else %}
-                                Autor não informado
-                            {% endif %}
-                        </p>
-                        <p class="book-year">
-                            {% if livro.ano_publicacao %}
-                                {{ livro.ano_publicacao }}
-                            {% endif %}
-                        </p>
-                        <p class="book-category">
-                            {% if livro.categoria_nome %}
-                                {{ livro.categoria_nome }}
-                            {% elif livro.genero %}
-                                {{ livro.genero }}
-                            {% endif %}
-                        </p>
-                        
-                        <!-- Botão Emprestar -->
-                        <button class="btn-emprestar" onclick="abrirModalEmprestimo({{ livro.id_livro }}, '{{ livro.titulo }}')">
-                            📚 Emprestar
-                        </button>
+                    BookFinder
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="nav-links">
+                    <a href="#features" class="nav-link">O que oferecemos</a>
+                    <a href="#mission" class="nav-link">Nossa Missão</a>
+                    <!-- AQUI: Link ajustado para rota /login (padrão Flask/Django) -->
+                    <a href="/login" class="btn btn-primary">
+                        Entrar
+                        <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </nav>
+
+                <!-- Mobile Button -->
+                <button class="mobile-menu-btn" id="menu-toggle">
+                    <svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Dropdown -->
+            <nav class="mobile-nav" id="mobile-nav">
+                <a href="#features" class="nav-link">O que oferecemos</a>
+                <a href="#mission" class="nav-link">Nossa Missão</a>
+                <!-- AQUI: Link ajustado para rota /login -->
+                <a href="/login" class="btn btn-primary" style="justify-content: center;">Entrar</a>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero container">
+            <div class="hero-content">
+                <div class="hero-tag">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    Comunidade #1 para Leitores
+                </div>
+                <h1 class="hero-title">Encontre sua próxima <br> <span>grande história</span></h1>
+                <p class="hero-description">
+                    O BookFinder conecta você a milhões de títulos. Pesquise sinopses, descubra autores e organize sua jornada literária.
+                </p>
+                <div class="hero-buttons">
+                    <!-- AQUI: Link ajustado para rota /login -->
+                    <a href="{{ url_for('login') }}" class="btn btn-primary"></a>
+                        <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Entrar
+                    </a>
+                    <a href="#mission" class="btn btn-outline">Saiba mais</a>
+                </div>
+            </div>
+            
+            <div class="hero-image">
+                <div class="decoration-circle"></div>
+                <div class="book-card">
+                    <div>
+                        <div style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8;">Best Seller</div>
+                        <div class="book-title">A Arte de<br>Encontrar</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <span style="opacity: 0.8;">Edição Especial</span>
+                        <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">B</div>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-            {% else %}
-            <div class="no-books">
-                <p>📚 Ainda não há livros cadastrados no sistema.</p>
-                <a href="{{ url_for('cadastrarlivro') }}" class="btn-primary">Cadastrar Primeiro Livro</a>
-            </div>
-            {% endif %}
         </section>
 
-        <div class="feature-card">
-            <h3>🔍 Buscar Livros Online</h3>
-            <p>Explore milhares de livros usando a API do Google Books</p>
-            <a href="{{ url_for('buscar_livros') }}" class="btn-primary">Buscar na API</a>
-        </div>
-
-        <!-- Modal para Empréstimo -->
-        <div id="modalEmprestimo" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h3>📚 Realizar Empréstimo</h3>
-                <p id="livroInfo"></p>
+        <!-- Features Section -->
+        <section id="features" class="section-padding features">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-subtitle">Recursos</span>
+                    <h2 class="section-title">Tudo para sua vida literária</h2>
+                </div>
                 
-                <form id="formEmprestimo">
-                    <input type="hidden" id="livroId" name="livro_id">
-                    
-                    <div class="form-group">
-                        <label for="usuarioSelect">Selecione o usuário:</label>
-                        <select id="usuarioSelect" name="usuario_id" required>
-                            <option value="">Selecione um usuário...</option>
-                            {% for usuario in usuarios %}
-                            <option value="{{ usuario.id_usuario }}">
-                                {{ usuario.nome_completo }} - {{ usuario.email }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                <div class="grid-3">
+                    <!-- Feature 1 -->
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                        <h3 class="feature-title">Busca Instantânea</h3>
+                        <p style="color: var(--text-light);">
+                            Digite o nome, autor ou ISBN e tenha acesso imediato a sinopses completas, datas e editoras.
+                        </p>
                     </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">✅ Confirmar Empréstimo</button>
-                        <button type="button" class="btn-secondary" onclick="fecharModal()">❌ Cancelar</button>
+                    <!-- Feature 2 -->
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        </div>
+                        <h3 class="feature-title">Curadoria Pessoal</h3>
+                        <p style="color: var(--text-light);">
+                            Salve seus livros favoritos e construa uma lista de desejos para nunca esquecer uma indicação.
+                        </p>
                     </div>
-                </form>
+                    <!-- Feature 3 -->
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                        </div>
+                        <h3 class="feature-title">Sem Distrações</h3>
+                        <p style="color: var(--text-light);">
+                            Uma interface limpa focada no conteúdo, perfeita para analisar se o livro é ideal para você.
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-    </main>
+        </section>
+
+        <!-- Mission Section -->
+        <section id="mission" class="section-padding mission">
+            <div class="container">
+                <div style="width: 60px; height: 60px; background: #fffbeb; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                    <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <h2 class="section-title">Nossa Missão</h2>
+                <p style="font-size: 1.2rem; margin: 30px auto; max-width: 800px; color: var(--text-main);">
+                    Acreditamos que todo livro tem o poder de mudar uma vida. O <strong>BookFinder</strong> nasceu para ser a bússola dos leitores, eliminando o ruído e conectando você diretamente com as histórias que importam.
+                </p>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <h4>+10 mi</h4>
+                        <p>Livros Indexados</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>100%</h4>
+                        <p>Gratuito</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>24/7</h4>
+                        <p>Disponível</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="lp-footer">
+            <div class="container footer-content">
+                <div class="logo" style="font-size: 1.2rem;">
+                    <svg class="icon" style="color: var(--primary);" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    BookFinder
+                </div>
+                <div style="color: var(--text-light); font-size: 0.9rem;">
+                    &copy; 2024 BookFinder. Feito para leitores.
+                </div>
+                <div class="social-links">
+                    <a href="#">Termos</a>
+                    <a href="#">Privacidade</a>
+                    <a href="#">Contato</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- =========================================
+         JAVASCRIPT
+         ========================================= -->
+    <script>
+        // Elementos DOM
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+
+        // Menu Mobile Toggle
+        menuToggle.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Smooth Scroll para links de âncora
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                mobileNav.classList.remove('active'); // Fecha menu ao clicar
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

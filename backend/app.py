@@ -35,7 +35,7 @@ jwt = JWTManager(app)
 CORS(app)
 
 
-
+# --- API PROXY GOOGLE BOOKS ---
 @app.route("/buscar-livros")
 def buscar_livros():
     """Página simples de busca na API do Google Books"""
@@ -103,41 +103,38 @@ def gerar_captcha():
     print(f"DEBUG CAPTCHA: {num1} {operador} {num2} = {resposta}")
     return num1, num2, operador, resposta
 
-# --- ROTAS HTML ---
+# --- ROTAS PRINCIPAIS ---
+
+# 1. LANDING PAGE (Raiz)
 @app.route("/")
+def index():
+    """Página inicial de marketing (Landing Page)"""
+    return render_template('index.html')
+
+# 2. HOME INTERNA (Aplicação Pós-Login)
+@app.route("/home")
 def home():
-    """Página inicial com livros do banco de dados"""
+    """Página principal da aplicação com listagem de livros e dashboard do leitor"""
     # Buscar os últimos livros cadastrados
     ok, livros = ListarLivros()
     
-    # Buscar usuários para o empréstimo
+    # Buscar usuários para o modal de empréstimo (dropdown)
     ok_usuarios, usuarios = ListarUsuarios()
     
-    # Se der erro, mostra página sem livros
+    # Tratamento de erro básico
     if not ok:
         livros = []
     if not ok_usuarios:
         usuarios = []
     
-    # Pegar apenas os primeiros 8 livros para exibir
-    livros_destaque = livros[:8] if livros else []
+    # Pegar apenas os primeiros 8 livros para exibir (opcional)
+    # livros_destaque = livros[:8] if livros else []
     
-    return render_template('index.html', 
-                         livros=livros_destaque, 
-                         usuarios=usuarios)
+    return render_template('home.html', 
+                           livros=livros, 
+                           usuarios=usuarios)
 
-@app.route("/generos")
-def generos():
-    return render_template('generos.html')
-
-@app.route("/sobre")
-def sobre():
-    return render_template('sobre.html')
-
-@app.route("/contato")
-def contato():
-    return render_template('contato.html')
-
+# 3. LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -148,10 +145,9 @@ def login():
         print(f"DEBUG: Resposta usuário: {captcha_resposta_usuario}")
         print(f"DEBUG: Resposta correta esperada: {captcha_resposta_correta}")
         
+        # Se CAPTCHA falhar
         if not captcha_resposta_usuario or captcha_resposta_usuario != captcha_resposta_correta:
-            # CAPTCHA incorreto → gerar novo
             num1, num2, operador, resposta = gerar_captcha()
-            
             return render_template(
                 "login.html",
                 error="Resposta do CAPTCHA incorreta. Tente novamente.",
@@ -165,10 +161,10 @@ def login():
         senha = request.form.get("senha", "").strip()
 
         ok, res = VerificaLoginUsuario(email, senha)
+        
+        # Se Login falhar
         if not ok:
-            # Login falhou → gerar novo CAPTCHA
             num1, num2, operador, resposta = gerar_captcha()
-            
             return render_template(
                 "login.html",
                 error=res,
@@ -184,7 +180,8 @@ def login():
         if usuario["tipo_usuario"].lower() == "admin":
             return redirect(url_for("dashboard"))
         else:
-            return redirect(url_for("home"))
+            # Redireciona para a rota HOME interna (/home)
+           return redirect(url_for("home"))
 
     # --- GET: exibe login com novo CAPTCHA ---
     num1, num2, operador, resposta = gerar_captcha()
@@ -197,9 +194,24 @@ def login():
         captcha_correta=resposta
     )
 
+# --- ROTAS SECUNDÁRIAS ---
+
+@app.route("/generos")
+def generos():
+    return render_template('generos.html')
+
+@app.route("/sobre")
+def sobre():
+    return render_template('sobre.html')
+
+@app.route("/contato")
+def contato():
+    return render_template('contato.html')
+
 @app.route("/logout")
 def logout():
-    return redirect(url_for('home'))
+    # Ao sair, volta para a Landing Page (index) ou Login
+    return redirect(url_for('index'))
 
 @app.route("/register")
 def register():
@@ -275,13 +287,13 @@ def cadastrareditora():
         
         if not nome:
             return render_template('editoras/cadastrareditora.html', 
-                                 error="Nome da editora é obrigatório")
+                                   error="Nome da editora é obrigatório")
         
         ok, message = CadastrarEditora(nome, endereco, telefone, email)
         if not ok:
             return render_template('editoras/cadastrareditora.html', 
-                                 error=message, nome=nome, endereco=endereco, 
-                                 telefone=telefone, email=email)
+                                   error=message, nome=nome, endereco=endereco, 
+                                   telefone=telefone, email=email)
         
         return redirect(url_for('listareditoras'))
     
@@ -300,7 +312,7 @@ def editareditora(id):
             if not ok:
                 return render_template('error.html', message=editora)
             return render_template('editoras/editareditora.html', 
-                                 editora=editora, error="Nome da editora é obrigatório")
+                                   editora=editora, error="Nome da editora é obrigatório")
         
         ok, message = AtualizarEditora(id, nome, endereco, telefone, email)
         if not ok:
@@ -308,7 +320,7 @@ def editareditora(id):
             if not ok:
                 return render_template('error.html', message=editora)
             return render_template('editoras/editareditora.html', 
-                                 editora=editora, error=message)
+                                   editora=editora, error=message)
         
         return redirect(url_for('listareditoras'))
     
@@ -370,13 +382,13 @@ def cadastrarlivro():
         
         if not titulo:
             return render_template('livros/cadastrarlivro.html', 
-                                 error="Título do livro é obrigatório")
+                                   error="Título do livro é obrigatório")
         
         ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria)
         if not ok:
             return render_template('livros/cadastrarlivro.html', 
-                                 error=message, titulo=titulo, isbn=isbn, 
-                                 ano_publicacao=ano_publicacao)
+                                   error=message, titulo=titulo, isbn=isbn, 
+                                   ano_publicacao=ano_publicacao)
         
         return redirect(url_for('listarlivros'))
     
@@ -396,7 +408,7 @@ def editarlivro(id):
             if not ok:
                 return render_template('error.html', message=livro)
             return render_template('livros/editarlivro.html', 
-                                 livro=livro, error="Título do livro é obrigatório")
+                                   livro=livro, error="Título do livro é obrigatório")
         
         ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
         if not ok:
@@ -404,7 +416,7 @@ def editarlivro(id):
             if not ok:
                 return render_template('error.html', message=livro)
             return render_template('livros/editarlivro.html', 
-                                 livro=livro, error=message)
+                                   livro=livro, error=message)
         
         return redirect(url_for('listarlivros'))
     
@@ -415,7 +427,6 @@ def editarlivro(id):
     
     return render_template('livros/editarlivro.html', livro=livro)
 
-# ADICIONE ESTA ROTA FALTANTE
 @app.route("/update_livro/<int:id>", methods=["POST"])
 def update_livro(id):
     titulo = request.form['titulo'].strip()
@@ -446,7 +457,6 @@ def excluirlivro(id):
         return render_template('error.html', message=livro)
     return render_template('livros/excluirlivro.html', livro=livro)
 
-# ADICIONE ESTA ROTA FALTANTE
 @app.route("/delete_livro/<int:id>", methods=["POST"])
 def delete_livro(id):
     ok, message = DeletarLivro(id)
@@ -470,12 +480,12 @@ def cadastrargenero():
         
         if not nome_genero:
             return render_template('generos/cadastrargenero.html', 
-                                 error="Nome da categoria é obrigatório")
+                                   error="Nome da categoria é obrigatório")
         
         ok, message = CadastrarGenero(nome_genero, descricao)
         if not ok:
             return render_template('generos/cadastrargenero.html', 
-                                 error=message, nome_genero=nome_genero, descricao=descricao)
+                                   error=message, nome_genero=nome_genero, descricao=descricao)
         
         return redirect(url_for('listargeneros'))
     
@@ -492,7 +502,7 @@ def editargenero(id):
             if not ok:
                 return render_template('error.html', message=genero)
             return render_template('generos/editargenero.html', 
-                                 genero=genero, error="Nome da categoria é obrigatório")
+                                   genero=genero, error="Nome da categoria é obrigatório")
         
         ok, message = AtualizarGenero(id, nome_genero, descricao)
         if not ok:
@@ -500,7 +510,7 @@ def editargenero(id):
             if not ok:
                 return render_template('error.html', message=genero)
             return render_template('generos/editargenero.html', 
-                                 genero=genero, error=message)
+                                   genero=genero, error=message)
         
         return redirect(url_for('listargeneros'))
     
@@ -580,7 +590,6 @@ def devolverlivro(id):
 
     return render_template('emprestimos/devolver.html', emprestimo=emprestimo)
 
-# Adicione esta rota para processar a devolução via POST
 @app.route("/devolver_emprestimo/<int:id>", methods=["POST"])
 def devolver_emprestimo(id):
     ok, message = DevolverLivro(id)
@@ -637,7 +646,7 @@ def removermulta(id):
 
     return render_template('multas/removermulta.html', multa=multa)
 
-# Rotas API
+# ---------------- API AUTH ----------------
 @app.route("/auth/register", methods=["POST"])
 def route_register():
     data = request.json or {}
