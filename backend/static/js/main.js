@@ -340,4 +340,31 @@ document.getElementById('formEmprestimo').addEventListener('submit', async funct
     }
 });
 
+//Mostrar senha
 
+document.addEventListener("DOMContentLoaded", function () {
+  const senhaInput = document.getElementById("senha");
+  const toggleBtn = document.getElementById("toggleSenha");
+
+  if (!senhaInput || !toggleBtn) {
+    // elementos não encontrados — não quebra a página
+    console.warn("Toggle senha: elemento não encontrado (id 'senha' ou 'toggleSenha').");
+    return;
+  }
+
+  // ícones SVG (string) — olho e olho risc
+  const olho = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const olhoRisc = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.66 20.66 0 0 1 4.05-5.06"/><path d="M1 1l22 22"/></svg>';
+
+  // inicial: olho (já no HTML), mas vamos garantir
+  toggleBtn.innerHTML = olho;
+
+  toggleBtn.addEventListener("click", function () {
+    const isPassword = senhaInput.getAttribute("type") === "password";
+    senhaInput.setAttribute("type", isPassword ? "text" : "password");
+    toggleBtn.innerHTML = isPassword ? olhoRisc : olho;
+    toggleBtn.setAttribute("aria-label", isPassword ? "Ocultar senha" : "Mostrar senha");
+    // opcional: manter foco no input
+    senhaInput.focus();
+  });
+});

@@ -1,0 +1,64 @@
+/* =========================================
+   RESPONSIVIDADE
+   ========================================= */
+@media (max-width: 900px) {
+    .main-nav { display: none; }
+    .mobile-menu-btn { display: block; }
+    
+    .container { padding: 0 15px; }
+    
+    #search-form { flex-direction: column; }
+    #search-form button { width: 100%; }
+    
+    h1 { font-size: 2rem; }
+    
+    .app-header { height: auto; padding: 15px 0; }
+    
+    .book-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .feature-card {
+        padding: 30px 20px;
+        margin: 40px 0;
+    }
+    
+    .feature-card h3 { font-size: 1.5rem; }
+}
+
+@media (max-width: 768px) {
+    .genre-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .contact-container {
+        padding: 25px 20px;
+        margin: 20px auto;
+    }
+    
+    .search-box {
+        flex-direction: column;
+    }
+    
+    .text-container h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .book-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-content {
+        padding: 20px;
+    }
+}

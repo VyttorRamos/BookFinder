@@ -1,0 +1,44 @@
+/* =========================================
+   FEATURE CARD (API)
+   ========================================= */
+.feature-card {
+    background: linear-gradient(135deg, var(--secondary) 0%, #334155 100%);
+    color: white;
+    padding: 50px;
+    border-radius: 16px;
+    text-align: center;
+    margin: 60px 0;
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-card h3 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.feature-card p {
+    color: #cbd5e1;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--white);
+    padding: 12px 30px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feature-card .btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}

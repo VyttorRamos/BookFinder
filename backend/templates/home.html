@@ -676,29 +676,7 @@
             </div>
         </div>
     </main>
-
-    <!-- Usando script inline para evitar conflitos -->
-    <script>
-        const modal = document.getElementById("modalEmprestimo");
-        const livroInfoText = document.getElementById("livroInfo");
-        const livroIdInput = document.getElementById("livroId");
-
-        function abrirModalEmprestimo(id, titulo) {
-            livroInfoText.textContent = "Livro: " + titulo;
-            livroIdInput.value = id;
-            modal.style.display = "flex";
-        }
-
-        function fecharModal() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                fecharModal();
-            }
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 
 </html>

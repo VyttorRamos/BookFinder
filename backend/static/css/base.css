@@ -1,0 +1,49 @@
+/* =========================================
+   RESET E VARIÁVEIS GLOBAIS
+   ========================================= */
+:root {
+    /* Cores Principais (Amber/Laranja) */
+    --primary: #f59e0b;
+    --primary-dark: #d97706;
+    
+    /* Cores Neutras (Slate/Cinza Azulado) */
+    --secondary: #1e293b;
+    --text-main: #334155;
+    --text-light: #64748b;
+    --bg-light: #f8fafc;
+    --white: #ffffff;
+    
+    /* Sombras e Bordas */
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    
+    /* Tipografia */
+    --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+ul { list-style: none; }

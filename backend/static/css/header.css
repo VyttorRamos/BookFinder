@@ -1,0 +1,155 @@
+/* =========================================
+   HEADER E NAVEGAÇÃO (DESIGN BRANCO)
+   ========================================= */
+header.app-header {
+    background-color: var(--white);
+    border-bottom: 1px solid var(--border-color);
+    height: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--secondary);
+    margin-right: 20px;
+}
+
+.logo-icon {
+    background-color: var(--primary);
+    color: white;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round; 
+    stroke-linejoin: round;
+}
+
+/* Menu de Navegação */
+nav.main-nav {
+    background-color: transparent;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 30px;
+}
+
+.nav-link {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 0;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--primary);
+    transition: width 0.3s;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* Botão Sair */
+.btn-logout {
+    color: #ef4444;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid #fee2e2;
+    padding: 8px 20px;
+    border-radius: 50px;
+    transition: all 0.2s;
+    background-color: #fff;
+    display: inline-block;
+}
+
+.btn-logout:hover { 
+    background-color: #ef4444; 
+    color: white;
+    border-color: #ef4444;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+/* =========================================
+   LINK ADMIN NA NAVBAR
+   ========================================= */
+
+.admin-link {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 50px;
+    margin: 0 10px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.admin-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    color: white !important;
+}
+
+.admin-link::after {
+    display: none; /* Remove a linha inferior do hover */
+}
+
+/* Indicador visual para mobile */
+@media (max-width: 900px) {
+    .admin-link {
+        margin: 5px 0;
+        text-align: center;
+    }
+}
