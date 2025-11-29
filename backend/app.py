@@ -1,11 +1,10 @@
 from flask_jwt_extended import (JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity)
 from datetime import timedelta
-from flask import Flask, jsonify, request, render_template, redirect, url_for
+from flask import Flask, jsonify, request, render_template, redirect, url_for, session, flash
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-import mysql.connector
-from mysql.connector import Error
+from functools import wraps
 import random
 import requests
 
@@ -16,7 +15,6 @@ from generoModel import (ListarGeneros, CadastrarGenero, PegaGeneroPorId, Atuali
 from emprestimoModel import (ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados)
 from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta)
 from editoraModel import (ListarEditoras, CadastrarEditora, PegaEditoraPorId, AtualizarEditora, DeletarEditora)
-
 
 load_dotenv()
 
@@ -34,28 +32,55 @@ jwt = JWTManager(app)
 
 CORS(app)
 
+# --- DECORATOR PARA PROTEGER ROTAS ADMIN ---
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('user_type') != 'admin':
+            flash('Acesso não autorizado!', 'error')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- FUNÇÃO CAPTCHA ---
+def gerar_captcha():
+    operadores = ['+', '-', '*']
+    operador = random.choice(operadores)
+    
+    if operador == '+':
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 10)
+        resposta = num1 + num2
+    elif operador == '-':
+        num1 = random.randint(10, 20)
+        num2 = random.randint(1, num1 - 1)
+        resposta = num1 - num2
+    else:  # multiplicação
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 5)
+        resposta = num1 * num2
+    
+    return num1, num2, operador, resposta
 
 # --- API PROXY GOOGLE BOOKS ---
 @app.route("/buscar-livros")
 def buscar_livros():
-    """Página simples de busca na API do Google Books"""
-    return render_template('buscar_livros.html')
+    user_type = session.get('user_type', 'aluno')
+    return render_template('buscar_livros.html', user_type=user_type)
 
 @app.route("/api/buscar-livros")
 def api_buscar_livros():
-    """API que busca livros no Google Books"""
     termo = request.args.get('q', '')
     
     if not termo:
         return jsonify({"error": "Digite um termo para busca"}), 400
     
     try:
-        # API do Google Books 
         url = f"https://www.googleapis.com/books/v1/volumes"
         params = {
             'q': termo,
-            'maxResults': 12,  # Limite de resultados
-            'langRestrict': 'pt'  # Livros em português
+            'maxResults': 12,
+            'langRestrict': 'pt'
         }
         
         response = requests.get(url, params=params, timeout=10)
@@ -81,71 +106,37 @@ def api_buscar_livros():
     except Exception as e:
         return jsonify({"error": f"Erro na busca: {str(e)}"}), 500
 
-# Função para gerar CAPTCHA
-def gerar_captcha():
-    operadores = ['+', '-', '*']
-    operador = random.choice(operadores)
-    
-    # Garantir que os números sejam sempre inteiros e a operação seja clara
-    if operador == '+':
-        num1 = random.randint(1, 10)
-        num2 = random.randint(1, 10)
-        resposta = num1 + num2
-    elif operador == '-':
-        num1 = random.randint(10, 10)
-        num2 = random.randint(1, num1 - 1)  # Garante resultado positivo
-        resposta = num1 - num2
-    else:  # multiplicação
-        num1 = random.randint(1, 10)
-        num2 = random.randint(1, 2)
-        resposta = num1 * num2
-    
-    print(f"DEBUG CAPTCHA: {num1} {operador} {num2} = {resposta}")
-    return num1, num2, operador, resposta
-
 # --- ROTAS PRINCIPAIS ---
 
-# 1. LANDING PAGE (Raiz)
 @app.route("/")
 def index():
-    """Página inicial de marketing (Landing Page)"""
     return render_template('index.html')
 
-# 2. HOME INTERNA (Aplicação Pós-Login)
 @app.route("/home")
 def home():
-    """Página principal da aplicação com listagem de livros e dashboard do leitor"""
-    # Buscar os últimos livros cadastrados
     ok, livros = ListarLivros()
-    
-    # Buscar usuários para o modal de empréstimo (dropdown)
     ok_usuarios, usuarios = ListarUsuarios()
     
-    # Tratamento de erro básico
     if not ok:
         livros = []
     if not ok_usuarios:
         usuarios = []
     
-    # Pegar apenas os primeiros 8 livros para exibir (opcional)
-    # livros_destaque = livros[:8] if livros else []
+    user_type = session.get('user_type', 'aluno')
+    user_name = session.get('user_name', 'Usuário')
     
     return render_template('home.html', 
                            livros=livros, 
-                           usuarios=usuarios)
+                           usuarios=usuarios,
+                           user_type=user_type,
+                           user_name=user_name)
 
-# 3. LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        # --- Verificação do CAPTCHA ---
         captcha_resposta_usuario = request.form.get("notrobo", "").strip()
         captcha_resposta_correta = request.form.get("captcha_correta", "").strip()
         
-        print(f"DEBUG: Resposta usuário: {captcha_resposta_usuario}")
-        print(f"DEBUG: Resposta correta esperada: {captcha_resposta_correta}")
-        
-        # Se CAPTCHA falhar
         if not captcha_resposta_usuario or captcha_resposta_usuario != captcha_resposta_correta:
             num1, num2, operador, resposta = gerar_captcha()
             return render_template(
@@ -156,13 +147,11 @@ def login():
                 email=request.form.get('email', '')
             )
 
-        # --- CAPTCHA correto: verificar login ---
         email = request.form.get("email", "").strip()
         senha = request.form.get("senha", "").strip()
 
         ok, res = VerificaLoginUsuario(email, senha)
         
-        # Se Login falhar
         if not ok:
             num1, num2, operador, resposta = gerar_captcha()
             return render_template(
@@ -173,20 +162,19 @@ def login():
                 email=email
             )
 
-        # --- Login bem-sucedido ---
         usuario = PegaUserPorEmail(email)
+        
+        session['user_id'] = usuario["id_usuario"]
+        session['user_type'] = usuario["tipo_usuario"]
+        session['user_name'] = usuario["nome_completo"]
+        session['user_email'] = usuario["email"]
 
-        # Redirecionar conforme tipo de usuário
         if usuario["tipo_usuario"].lower() == "admin":
             return redirect(url_for("dashboard"))
         else:
-            # Redireciona para a rota HOME interna (/home)
-           return redirect(url_for("home"))
+            return redirect(url_for("home"))
 
-    # --- GET: exibe login com novo CAPTCHA ---
     num1, num2, operador, resposta = gerar_captcha()
-    
-    print(f"DEBUG: Novo CAPTCHA gerado - Pergunta: {num1} {operador} {num2}, Resposta: {resposta}")
     
     return render_template(
         "login.html",
@@ -194,23 +182,24 @@ def login():
         captcha_correta=resposta
     )
 
-# --- ROTAS SECUNDÁRIAS ---
-
 @app.route("/generos")
 def generos():
-    return render_template('generos.html')
+    user_type = session.get('user_type', 'aluno')
+    return render_template('generos.html', user_type=user_type)
 
 @app.route("/sobre")
 def sobre():
-    return render_template('sobre.html')
+    user_type = session.get('user_type', 'aluno')
+    return render_template('sobre.html', user_type=user_type)
 
 @app.route("/contato")
 def contato():
-    return render_template('contato.html')
+    user_type = session.get('user_type', 'aluno')
+    return render_template('contato.html', user_type=user_type)
 
 @app.route("/logout")
 def logout():
-    # Ao sair, volta para a Landing Page (index) ou Login
+    session.clear()
     return redirect(url_for('index'))
 
 @app.route("/register")
@@ -219,32 +208,42 @@ def register():
 
 @app.route("/privacidade")
 def privacidade():
-    return render_template('privacidade.html')
+    user_type = session.get('user_type', 'aluno')
+    return render_template('privacidade.html', user_type=user_type)
 
 @app.route("/termos")
 def termos():
-    return render_template('termos.html')
+    user_type = session.get('user_type', 'aluno')
+    return render_template('termos.html', user_type=user_type)
 
 @app.route("/dashboard")
+@admin_required
 def dashboard():
-    return render_template('dashboard.html')
+    user_type = session.get('user_type')
+    user_name = session.get('user_name')
+    return render_template('dashboard.html', user_type=user_type, user_name=user_name)
 
 # ---------------- USUÁRIOS ----------------
 @app.route("/listaruser")
+@admin_required
 def listaruser():
     ok, usuarios = ListarUsuarios()
     if not ok:
         return render_template('error.html', message=usuarios)
-    return render_template('usuarios/listaruser.html', usuarios=usuarios)
+    user_type = session.get('user_type')
+    return render_template('usuarios/listaruser.html', usuarios=usuarios, user_type=user_type)
 
 @app.route("/editaruser/<int:id>")
+@admin_required
 def editaruser(id):
     ok, usuario = PegaUserPorId(id)
     if not ok:
         return render_template('error.html', message=usuario)
-    return render_template('usuarios/editaruser.html', usuario=usuario)
+    user_type = session.get('user_type')
+    return render_template('usuarios/editaruser.html', usuario=usuario, user_type=user_type)
 
 @app.route("/update_user/<int:id>", methods=["POST"])
+@admin_required
 def update_user(id):
     nome_completo = request.form['nome_completo']
     email = request.form['email']
@@ -256,13 +255,16 @@ def update_user(id):
     return redirect(url_for('listaruser'))
 
 @app.route("/excluiruser/<int:id>")
+@admin_required
 def excluiruser(id):
     ok, usuario = PegaUserPorId(id)
     if not ok:
         return render_template('error.html', message=usuario)
-    return render_template('usuarios/excluiruser.html', usuario=usuario)
+    user_type = session.get('user_type')
+    return render_template('usuarios/excluiruser.html', usuario=usuario, user_type=user_type)
 
 @app.route("/delete_user/<int:id>", methods=["POST"])
+@admin_required
 def delete_user(id):
     ok, message = DeletarUsuario(id)
     if not ok:
@@ -271,13 +273,16 @@ def delete_user(id):
 
 # ---------------- EDITORAS ----------------
 @app.route("/listareditoras")
+@admin_required
 def listareditoras():
     ok, editoras = ListarEditoras()
     if not ok:
         return render_template('error.html', message=editoras)
-    return render_template('editoras/listareditoras.html', editoras=editoras)
+    user_type = session.get('user_type')
+    return render_template('editoras/listareditoras.html', editoras=editoras, user_type=user_type)
 
 @app.route("/cadastrareditora", methods=["GET", "POST"])
+@admin_required
 def cadastrareditora():
     if request.method == "POST":
         nome = request.form['nome'].strip()
@@ -286,20 +291,26 @@ def cadastrareditora():
         email = request.form.get('email', '').strip()
         
         if not nome:
+            user_type = session.get('user_type')
             return render_template('editoras/cadastrareditora.html', 
-                                   error="Nome da editora é obrigatório")
+                                   error="Nome da editora é obrigatório",
+                                   user_type=user_type)
         
         ok, message = CadastrarEditora(nome, endereco, telefone, email)
         if not ok:
+            user_type = session.get('user_type')
             return render_template('editoras/cadastrareditora.html', 
                                    error=message, nome=nome, endereco=endereco, 
-                                   telefone=telefone, email=email)
+                                   telefone=telefone, email=email,
+                                   user_type=user_type)
         
         return redirect(url_for('listareditoras'))
     
-    return render_template('editoras/cadastrareditora.html')
+    user_type = session.get('user_type')
+    return render_template('editoras/cadastrareditora.html', user_type=user_type)
 
 @app.route("/editareditora/<int:id>", methods=["GET", "POST"])
+@admin_required
 def editareditora(id):
     if request.method == "POST":
         nome = request.form['nome'].strip()
@@ -311,27 +322,32 @@ def editareditora(id):
             ok, editora = PegaEditoraPorId(id)
             if not ok:
                 return render_template('error.html', message=editora)
+            user_type = session.get('user_type')
             return render_template('editoras/editareditora.html', 
-                                   editora=editora, error="Nome da editora é obrigatório")
+                                   editora=editora, error="Nome da editora é obrigatório",
+                                   user_type=user_type)
         
         ok, message = AtualizarEditora(id, nome, endereco, telefone, email)
         if not ok:
             ok, editora = PegaEditoraPorId(id)
             if not ok:
                 return render_template('error.html', message=editora)
+            user_type = session.get('user_type')
             return render_template('editoras/editareditora.html', 
-                                   editora=editora, error=message)
+                                   editora=editora, error=message,
+                                   user_type=user_type)
         
         return redirect(url_for('listareditoras'))
     
-    # GET - Carregar dados da editora
     ok, editora = PegaEditoraPorId(id)
     if not ok:
         return render_template('error.html', message=editora)
     
-    return render_template('editoras/editareditora.html', editora=editora)
+    user_type = session.get('user_type')
+    return render_template('editoras/editareditora.html', editora=editora, user_type=user_type)
 
 @app.route("/update_editora/<int:id>", methods=["POST"])
+@admin_required
 def update_editora(id):
     nome = request.form['nome'].strip()
     endereco = request.form.get('endereco', '').strip()
@@ -348,14 +364,17 @@ def update_editora(id):
     return redirect(url_for('listareditoras'))
 
 @app.route("/excluireditora/<int:id>")
+@admin_required
 def excluireditora(id):
     ok, editora = PegaEditoraPorId(id)
     if not ok:
         return render_template('error.html', message=editora)
     
-    return render_template('editoras/excluireditora.html', editora=editora)
+    user_type = session.get('user_type')
+    return render_template('editoras/excluireditora.html', editora=editora, user_type=user_type)
 
 @app.route("/delete_editora/<int:id>", methods=["POST"])
+@admin_required
 def delete_editora(id):
     ok, message = DeletarEditora(id)
     if not ok:
@@ -365,13 +384,16 @@ def delete_editora(id):
 
 # ---------------- LIVROS ----------------
 @app.route("/listarlivro")
+@admin_required
 def listarlivros():
     ok, livros = ListarLivros()
     if not ok:
         return render_template('error.html', message=livros)
-    return render_template('livros/listarlivro.html', livros=livros)
+    user_type = session.get('user_type')
+    return render_template('livros/listarlivro.html', livros=livros, user_type=user_type)
 
 @app.route("/cadastrarlivro", methods=["GET", "POST"])
+@admin_required
 def cadastrarlivro():
     if request.method == 'POST':
         titulo = request.form['titulo'].strip()
@@ -381,20 +403,26 @@ def cadastrarlivro():
         id_categoria = request.form.get('id_categoria')
         
         if not titulo:
+            user_type = session.get('user_type')
             return render_template('livros/cadastrarlivro.html', 
-                                   error="Título do livro é obrigatório")
+                                   error="Título do livro é obrigatório",
+                                   user_type=user_type)
         
         ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria)
         if not ok:
+            user_type = session.get('user_type')
             return render_template('livros/cadastrarlivro.html', 
                                    error=message, titulo=titulo, isbn=isbn, 
-                                   ano_publicacao=ano_publicacao)
+                                   ano_publicacao=ano_publicacao,
+                                   user_type=user_type)
         
         return redirect(url_for('listarlivros'))
     
-    return render_template('livros/cadastrarlivro.html')
+    user_type = session.get('user_type')
+    return render_template('livros/cadastrarlivro.html', user_type=user_type)
 
 @app.route("/editarlivro/<int:id>", methods=["GET", "POST"])
+@admin_required
 def editarlivro(id):
     if request.method == 'POST':
         titulo = request.form['titulo'].strip()
@@ -407,27 +435,32 @@ def editarlivro(id):
             ok, livro = PegaLivroPorId(id)
             if not ok:
                 return render_template('error.html', message=livro)
+            user_type = session.get('user_type')
             return render_template('livros/editarlivro.html', 
-                                   livro=livro, error="Título do livro é obrigatório")
+                                   livro=livro, error="Título do livro é obrigatório",
+                                   user_type=user_type)
         
         ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
         if not ok:
             ok, livro = PegaLivroPorId(id)
             if not ok:
                 return render_template('error.html', message=livro)
+            user_type = session.get('user_type')
             return render_template('livros/editarlivro.html', 
-                                   livro=livro, error=message)
+                                   livro=livro, error=message,
+                                   user_type=user_type)
         
         return redirect(url_for('listarlivros'))
     
-    # GET - Carregar dados do livro
     ok, livro = PegaLivroPorId(id)
     if not ok:
         return render_template('error.html', message=livro)
     
-    return render_template('livros/editarlivro.html', livro=livro)
+    user_type = session.get('user_type')
+    return render_template('livros/editarlivro.html', livro=livro, user_type=user_type)
 
 @app.route("/update_livro/<int:id>", methods=["POST"])
+@admin_required
 def update_livro(id):
     titulo = request.form['titulo'].strip()
     isbn = request.form.get('isbn', '').strip()
@@ -445,6 +478,7 @@ def update_livro(id):
     return redirect(url_for('listarlivros'))
 
 @app.route("/excluirlivro/<int:id>", methods=["GET", "POST"])
+@admin_required
 def excluirlivro(id):
     if request.method == 'POST':
         ok, message = DeletarLivro(id)
@@ -455,9 +489,12 @@ def excluirlivro(id):
     ok, livro = PegaLivroPorId(id)
     if not ok:
         return render_template('error.html', message=livro)
-    return render_template('livros/excluirlivro.html', livro=livro)
+    
+    user_type = session.get('user_type')
+    return render_template('livros/excluirlivro.html', livro=livro, user_type=user_type)
 
 @app.route("/delete_livro/<int:id>", methods=["POST"])
+@admin_required
 def delete_livro(id):
     ok, message = DeletarLivro(id)
     if not ok:
@@ -466,32 +503,41 @@ def delete_livro(id):
 
 # ---------------- GÊNEROS ----------------
 @app.route("/listargeneros")
+@admin_required
 def listargeneros():
     ok, generos = ListarGeneros()
     if not ok:
         return render_template('error.html', message=generos)
-    return render_template('generos/listargeneros.html', generos=generos)
+    user_type = session.get('user_type')
+    return render_template('generos/listargeneros.html', generos=generos, user_type=user_type)
 
 @app.route("/cadastrargenero", methods=["GET", "POST"])
+@admin_required
 def cadastrargenero():
     if request.method == "POST":
         nome_genero = request.form['nome_genero'].strip()
         descricao = request.form.get('descricao', '').strip()
         
         if not nome_genero:
+            user_type = session.get('user_type')
             return render_template('generos/cadastrargenero.html', 
-                                   error="Nome da categoria é obrigatório")
+                                   error="Nome da categoria é obrigatório",
+                                   user_type=user_type)
         
         ok, message = CadastrarGenero(nome_genero, descricao)
         if not ok:
+            user_type = session.get('user_type')
             return render_template('generos/cadastrargenero.html', 
-                                   error=message, nome_genero=nome_genero, descricao=descricao)
+                                   error=message, nome_genero=nome_genero, descricao=descricao,
+                                   user_type=user_type)
         
         return redirect(url_for('listargeneros'))
     
-    return render_template('generos/cadastrargenero.html')
+    user_type = session.get('user_type')
+    return render_template('generos/cadastrargenero.html', user_type=user_type)
 
 @app.route("/editargenero/<int:id>", methods=["GET", "POST"])
+@admin_required
 def editargenero(id):
     if request.method == "POST":
         nome_genero = request.form['nome_genero'].strip()
@@ -501,27 +547,32 @@ def editargenero(id):
             ok, genero = PegaGeneroPorId(id)
             if not ok:
                 return render_template('error.html', message=genero)
+            user_type = session.get('user_type')
             return render_template('generos/editargenero.html', 
-                                   genero=genero, error="Nome da categoria é obrigatório")
+                                   genero=genero, error="Nome da categoria é obrigatório",
+                                   user_type=user_type)
         
         ok, message = AtualizarGenero(id, nome_genero, descricao)
         if not ok:
             ok, genero = PegaGeneroPorId(id)
             if not ok:
                 return render_template('error.html', message=genero)
+            user_type = session.get('user_type')
             return render_template('generos/editargenero.html', 
-                                   genero=genero, error=message)
+                                   genero=genero, error=message,
+                                   user_type=user_type)
         
         return redirect(url_for('listargeneros'))
     
-    # GET - Carregar dados do gênero
     ok, genero = PegaGeneroPorId(id)
     if not ok:
         return render_template('error.html', message=genero)
     
-    return render_template('generos/editargenero.html', genero=genero)
+    user_type = session.get('user_type')
+    return render_template('generos/editargenero.html', genero=genero, user_type=user_type)
 
 @app.route("/update_genero/<int:id>", methods=["POST"])
+@admin_required
 def update_genero(id):
     nome_genero = request.form['nome_genero'].strip()
     descricao = request.form.get('descricao', '').strip()
@@ -536,14 +587,17 @@ def update_genero(id):
     return redirect(url_for('listargeneros'))
 
 @app.route("/excluirgenero/<int:id>")
+@admin_required
 def excluirgenero(id):
     ok, genero = PegaGeneroPorId(id)
     if not ok:
         return render_template('error.html', message=genero)
     
-    return render_template('generos/excluirgenero.html', genero=genero)
+    user_type = session.get('user_type')
+    return render_template('generos/excluirgenero.html', genero=genero, user_type=user_type)
 
 @app.route("/delete_genero/<int:id>", methods=["POST"])
+@admin_required
 def delete_genero(id):
     ok, message = DeletarGenero(id)
     if not ok:
@@ -553,13 +607,16 @@ def delete_genero(id):
 
 # ---------------- EMPRÉSTIMOS ----------------
 @app.route("/listaremprestimos")
+@admin_required
 def listaremprestimos():
     ok, emprestimos = ListarEmprestimos()
     if not ok:
         return render_template('error.html', message=emprestimos)
-    return render_template('emprestimos/listaremprestimos.html', emprestimos=emprestimos)
+    user_type = session.get('user_type')
+    return render_template('emprestimos/listaremprestimos.html', emprestimos=emprestimos, user_type=user_type)
 
 @app.route("/emprestar", methods=['GET', 'POST'])
+@admin_required
 def emprestar():
     if request.method == 'POST':
         id_livro = request.form['id_livro']
@@ -574,9 +631,11 @@ def emprestar():
     if not ok_livros or not ok_usuarios:
         return render_template('error.html', message="Erro ao buscar livros ou usuários")
     
-    return render_template('emprestimos/emprestar.html', livros=livros, usuarios=usuarios)
+    user_type = session.get('user_type')
+    return render_template('emprestimos/emprestar.html', livros=livros, usuarios=usuarios, user_type=user_type)
 
 @app.route("/devolverlivro/<int:id>", methods=['GET', 'POST'])
+@admin_required
 def devolverlivro(id):
     if request.method == 'POST':
         ok, message = DevolverLivro(id)
@@ -588,9 +647,11 @@ def devolverlivro(id):
     if not ok:
         return render_template('error.html', message=emprestimo)
 
-    return render_template('emprestimos/devolver.html', emprestimo=emprestimo)
+    user_type = session.get('user_type')
+    return render_template('emprestimos/devolver.html', emprestimo=emprestimo, user_type=user_type)
 
 @app.route("/devolver_emprestimo/<int:id>", methods=["POST"])
+@admin_required
 def devolver_emprestimo(id):
     ok, message = DevolverLivro(id)
     if not ok:
@@ -598,6 +659,7 @@ def devolver_emprestimo(id):
     return redirect(url_for('listaremprestimos'))
 
 @app.route("/renovar/<int:id>", methods=['GET', 'POST'])
+@admin_required
 def renovar(id):
     if request.method == 'POST':
         ok, message = RenovarEmprestimo(id)
@@ -608,9 +670,12 @@ def renovar(id):
     ok, emprestimo = PegaEmprestimoPorId(id)
     if not ok:
         return render_template('error.html', message=emprestimo)
-    return render_template('emprestimos/renovar.html', emprestimo=emprestimo)
+    
+    user_type = session.get('user_type')
+    return render_template('emprestimos/renovar.html', emprestimo=emprestimo, user_type=user_type)
 
 @app.route("/update_emprestimo/<int:id>", methods=["POST"])
+@admin_required
 def update_emprestimo(id):
     ok, message = RenovarEmprestimo(id)
     if not ok:
@@ -618,21 +683,26 @@ def update_emprestimo(id):
     return redirect(url_for('listaremprestimos'))
 
 @app.route("/listaratrasados")
+@admin_required
 def listaratrasados():
     ok, emprestimos = ListarAtrasados()
     if not ok:
         return render_template('error.html', message=emprestimos)
-    return render_template('emprestimos/listaratrasados.html', emprestimos=emprestimos)
+    user_type = session.get('user_type')
+    return render_template('emprestimos/listaratrasados.html', emprestimos=emprestimos, user_type=user_type)
 
 # ---------------- MULTAS ----------------
 @app.route("/listarmultas")
+@admin_required
 def listarmultas():
     ok, multas = ListarMultas()
     if not ok:
         return render_template('error.html', message=multas)
-    return render_template('multas/listarmultas.html', multas=multas)
+    user_type = session.get('user_type')
+    return render_template('multas/listarmultas.html', multas=multas, user_type=user_type)
 
 @app.route("/removermulta/<int:id>", methods=["GET", "POST"])
+@admin_required
 def removermulta(id):
     if request.method == 'POST':
         ok, message = RemoverMulta(id)
@@ -644,7 +714,8 @@ def removermulta(id):
     if not ok:
         return render_template('error.html', message=multa)
 
-    return render_template('multas/removermulta.html', multa=multa)
+    user_type = session.get('user_type')
+    return render_template('multas/removermulta.html', multa=multa, user_type=user_type)
 
 # ---------------- API AUTH ----------------
 @app.route("/auth/register", methods=["POST"])

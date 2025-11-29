@@ -91,7 +91,7 @@ def VerificaLoginUsuario(email: str, SenhaSimples: str):
     if not Valido:
         return False, "Credenciais inválidas"
     
-    #Verifica se o usuário é admin
+    # Verifica se o usuário é admin
     tipo = usuario.get("tipo_usuario") 
     is_admin = True if tipo == "admin" else False
 
@@ -99,14 +99,12 @@ def VerificaLoginUsuario(email: str, SenhaSimples: str):
     usuario.pop("senha", None)
 
     # Retornamos também se é admin para que a camada superior rota/login
-    return True, {"usuario": usuario, "novaHash": NovaHash, "is_admin": is_admin}
-
-    # Remove o hash do objeto para segurança
-    usuario.pop("senha", None)
-    return True, {"usuario": usuario, "novaHash": NovaHash}
-
-    
-    
+    return True, {
+        "usuario": usuario, 
+        "novaHash": NovaHash, 
+        "is_admin": is_admin,
+        "tipo_usuario": tipo
+    }
 
 def AtualizaHashSenha(id_usuario: int, new_hash: str):
     conn = None
@@ -135,7 +133,7 @@ def ListarUsuarios():
             return False, "Falha na conexão com o DB"
 
         cursor = conn.cursor(dictionary=True)
-        sql = "SELECT id_usuario, nome_completo, email FROM usuarios"
+        sql = "SELECT id_usuario, nome_completo, email, telefone, tipo_usuario FROM usuarios"
         cursor.execute(sql)
         usuarios = cursor.fetchall()
         cursor.close()

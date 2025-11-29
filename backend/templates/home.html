@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,16 +8,21 @@
     <!-- CSS Estático -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
-    
+
     <style>
         /* --- IDENTIDADE VISUAL (Moderna) --- */
         :root {
-            --primary: #f59e0b; /* Amber-500 */
+            --primary: #f59e0b;
+            /* Amber-500 */
             --primary-dark: #d97706;
-            --secondary: #1e293b; /* Slate-800 */
-            --text-main: #334155; /* Slate-700 */
-            --text-light: #64748b; /* Slate-500 */
-            --bg-light: #f8fafc; /* Slate-50 */
+            --secondary: #1e293b;
+            /* Slate-800 */
+            --text-main: #334155;
+            /* Slate-700 */
+            --text-light: #64748b;
+            /* Slate-500 */
+            --bg-light: #f8fafc;
+            /* Slate-50 */
             --white: #ffffff;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
@@ -24,7 +30,11 @@
             --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: var(--font-main);
@@ -36,7 +46,11 @@
             flex-direction: column;
         }
 
-        a { text-decoration: none; color: inherit; transition: color 0.2s; }
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.2s;
+        }
 
         /* --- HEADER 100% BRANCO --- */
         .app-header {
@@ -50,7 +64,7 @@
             align-items: center;
             box-shadow: var(--shadow-sm);
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -72,6 +86,7 @@
             color: var(--secondary);
             margin-right: 20px;
         }
+
         .logo-icon {
             background-color: var(--primary);
             color: white;
@@ -79,31 +94,40 @@
             border-radius: 8px;
             display: flex;
         }
-        .icon { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
-        
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
         /* MENU DE NAVEGAÇÃO (Links Escuros em Fundo Branco) */
         .main-nav {
             display: flex;
             gap: 30px;
             align-items: center;
-            margin-left: auto; /* Empurra para a direita */
+            margin-left: auto;
+            /* Empurra para a direita */
             margin-right: 30px;
         }
-        
+
         .nav-link {
             font-weight: 700;
             font-size: 0.85rem;
-            color: var(--text-light); /* Cinza escuro para contraste */
+            color: var(--text-light);
+            /* Cinza escuro para contraste */
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 8px 0;
             position: relative;
         }
-        
+
         .nav-link:hover {
             color: var(--primary);
         }
-        
+
         /* Efeito de linha ao passar o mouse */
         .nav-link::after {
             content: '';
@@ -115,7 +139,10 @@
             background-color: var(--primary);
             transition: width 0.3s;
         }
-        .nav-link:hover::after { width: 100%; }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
 
         /* Botão Sair */
         .btn-logout {
@@ -129,15 +156,22 @@
             transition: all 0.2s;
             background-color: #fff;
         }
-        .btn-logout:hover { 
-            background-color: #ef4444; 
+
+        .btn-logout:hover {
+            background-color: #ef4444;
             color: white;
             border-color: #ef4444;
             box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
         }
 
         /* Menu Mobile */
-        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; color: var(--text-main); }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-main);
+        }
 
         /* --- CONTEÚDO PRINCIPAL --- */
         main {
@@ -154,7 +188,8 @@
             color: var(--secondary);
             margin-bottom: 10px;
         }
-        main > p {
+
+        main>p {
             color: var(--text-light);
             font-size: 1.1rem;
             margin-bottom: 40px;
@@ -170,122 +205,354 @@
             box-shadow: var(--shadow-sm);
             border: 1px solid #e2e8f0;
         }
-        #search-form { display: flex; gap: 10px; }
+
+        #search-form {
+            display: flex;
+            gap: 10px;
+        }
+
         #search-input {
-            flex: 1; padding: 14px 20px; border: 2px solid #e2e8f0;
-            border-radius: 10px; font-size: 1rem; outline: none; transition: border-color 0.3s;
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
         }
-        #search-input:focus { border-color: var(--primary); }
-        
-        button[type="submit"], .btn-primary {
-            background-color: var(--secondary); color: white; border: none; padding: 0 25px;
-            border-radius: 10px; font-weight: 600; cursor: pointer; transition: background-color 0.2s;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; text-decoration: none;
+
+        #search-input:focus {
+            border-color: var(--primary);
         }
-        button[type="submit"]:hover, .btn-primary:hover { background-color: #0f172a; }
+
+        button[type="submit"],
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 50px;
+            text-decoration: none;
+        }
+
+        button[type="submit"]:hover,
+        .btn-primary:hover {
+            background-color: #0f172a;
+        }
 
         /* Grade de Livros */
         .book-section h2 {
-            font-size: 1.5rem; color: var(--secondary); margin-bottom: 25px; display: flex; align-items: center; gap: 10px;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
         .book-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px; margin-bottom: 60px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
         }
+
         .book-card {
-            background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);
-            border: 1px solid #f1f5f9; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
         }
-        .book-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-        
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
         .book-card-image {
-            height: 200px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            height: 200px;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        .book-card-image img { width: 100%; height: 100%; object-fit: cover; }
-        .book-placeholder { font-size: 3rem; color: #cbd5e1; }
-        
-        .book-card-info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        .book-card-info h3 { font-size: 1.1rem; font-weight: 700; color: var(--secondary); margin-bottom: 5px; line-height: 1.3; }
-        .book-author { color: var(--text-light); font-size: 0.9rem; margin-bottom: 15px; }
-        
+
+        .book-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-placeholder {
+            font-size: 3rem;
+            color: #cbd5e1;
+        }
+
+        .book-card-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-card-info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .book-author {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
         .book-meta {
-            margin-top: auto; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.8rem; color: var(--text-light);
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            color: var(--text-light);
         }
-        .tag { background-color: #fffbeb; color: #d97706; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
-        
+
+        .tag {
+            background-color: #fffbeb;
+            color: #d97706;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
         .btn-emprestar {
-            width: 100%; padding: 10px; background-color: var(--primary); color: white; border: none;
-            border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .btn-emprestar:hover { background-color: var(--primary-dark); }
+
+        .btn-emprestar:hover {
+            background-color: var(--primary-dark);
+        }
 
         /* Modal */
         .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
         }
+
         .modal-content {
-            background-color: var(--white); margin: auto; padding: 30px; border-radius: 16px;
-            width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); position: relative;
+            background-color: var(--white);
+            margin: auto;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
+
         .close {
-            position: absolute; right: 20px; top: 20px; color: #94a3b8; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            color: #94a3b8;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
         }
-        .close:hover { color: var(--secondary); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary); }
-        select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; outline: none; }
-        .form-actions { display: flex; gap: 10px; margin-top: 30px; }
-        .form-actions button { flex: 1; }
+
+        .close:hover {
+            color: var(--secondary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .form-actions button {
+            flex: 1;
+        }
+
         .btn-secondary {
-            background-color: #f1f5f9; color: var(--text-main); border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
         }
-        .btn-secondary:hover { background-color: #e2e8f0; }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
         .feature-card {
-            background: linear-gradient(135deg, var(--secondary) 0%, #334155 100%); color: white; padding: 40px; border-radius: 16px; text-align: center; margin-top: 40px;
+            background: linear-gradient(135deg, var(--secondary) 0%, #334155 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 40px;
         }
-        .feature-card h3 { color: white; margin-bottom: 10px; font-size: 1.5rem; }
-        .feature-card p { color: #cbd5e1; margin-bottom: 25px; }
-        .feature-card .btn-primary { background-color: var(--primary); color: white; }
-        .feature-card .btn-primary:hover { background-color: var(--primary-dark); }
-        .no-books { text-align: center; padding: 60px; background-color: var(--white); border-radius: 16px; border: 1px dashed #cbd5e1; }
-        .no-books p { margin-bottom: 20px; color: var(--text-light); }
+
+        .feature-card h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .feature-card p {
+            color: #cbd5e1;
+            margin-bottom: 25px;
+        }
+
+        .feature-card .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .feature-card .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .no-books {
+            text-align: center;
+            padding: 60px;
+            background-color: var(--white);
+            border-radius: 16px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .no-books p {
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
 
         /* Responsividade */
         @media (max-width: 900px) {
-            .main-nav { display: none; } /* Oculta menu em telas pequenas (ideal adicionar menu hamburguer) */
-            .mobile-menu-btn { display: block; }
-            .container { padding: 15px; }
-            .app-header { height: auto; padding: 15px 0; }
-            .search-container #search-form { flex-direction: column; }
-            .search-container button { width: 100%; }
+            .main-nav {
+                display: none;
+            }
+
+            /* Oculta menu em telas pequenas (ideal adicionar menu hamburguer) */
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .app-header {
+                height: auto;
+                padding: 15px 0;
+            }
+
+            .search-container #search-form {
+                flex-direction: column;
+            }
+
+            .search-container button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <!-- HEADER 100% BRANCO - SEM VERDE -->
+    <!-- HEADER CONDICIONAL -->
     <header class="app-header">
         <div class="container">
-            <!-- Logo -->
             <a href="{{ url_for('home') }}" class="logo">
                 <div class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
                 </div>
                 BookFinder
             </a>
-            
-            <!-- MENU DE NAVEGAÇÃO -->
+
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
                 <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
                 <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+
+                <!-- OPÇÃO ADMIN CONDICIONAL -->
+                {% if user_type == 'admin' %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
+                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    ADMIN
+                </a>
+                {% endif %}
+
                 <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
             </nav>
 
-            <!-- Ícone Mobile -->
             <button class="mobile-menu-btn">
-                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
             </button>
         </div>
     </header>
@@ -299,7 +566,10 @@
             <form id="search-form">
                 <input type="text" id="search-input" placeholder="Busque por título, autor ou categoria...">
                 <button type="submit">
-                    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
                     Buscar
                 </button>
             </form>
@@ -308,45 +578,47 @@
         <!-- Seção de Destaques -->
         <section id="destaques" class="book-section">
             <h2>
-                <svg class="icon" style="color: var(--primary);" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <svg class="icon" style="color: var(--primary);" viewBox="0 0 24 24">
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
+                </svg>
                 Livros em Destaque
             </h2>
-            
+
             {% if livros %}
             <div class="book-grid">
                 {% for livro in livros %}
-                <div class="book-card" data-titulo="{{ livro.titulo.lower() }}" 
-                     data-categoria="{{ livro.categoria_nome.lower() if livro.categoria_nome else '' }}"
-                     data-autor="{{ livro.autor.lower() if livro.autor else '' }}">
-                    
+                <div class="book-card" data-titulo="{{ livro.titulo.lower() }}"
+                    data-categoria="{{ livro.categoria_nome.lower() if livro.categoria_nome else '' }}"
+                    data-autor="{{ livro.autor.lower() if livro.autor else '' }}">
+
                     <div class="book-card-image">
                         {% if livro.capa %}
-                            <img src="{{ livro.capa }}" alt="Capa do livro {{ livro.titulo }}">
+                        <img src="{{ livro.capa }}" alt="Capa do livro {{ livro.titulo }}">
                         {% else %}
-                            <div class="book-placeholder">📖</div>
+                        <div class="book-placeholder">📖</div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="book-card-info">
                         <h3>{{ livro.titulo }}</h3>
                         <p class="book-author">
                             {% if livro.autor %} {{ livro.autor }} {% else %} Autor desconhecido {% endif %}
                         </p>
-                        
+
                         <div class="book-meta">
                             <span>{{ livro.ano_publicacao if livro.ano_publicacao else '-' }}</span>
                             {% if livro.categoria_nome %}
-                                <span class="tag">{{ livro.categoria_nome }}</span>
+                            <span class="tag">{{ livro.categoria_nome }}</span>
                             {% elif livro.genero %}
-                                <span class="tag">{{ livro.genero }}</span>
+                            <span class="tag">{{ livro.genero }}</span>
                             {% endif %}
                         </div>
-                        
+
                         <!-- CORREÇÃO AQUI: Usando data-attributes para evitar erros de sintaxe JS no editor -->
-                        <button class="btn-emprestar" 
-                                data-id="{{ livro.id_livro }}" 
-                                data-titulo="{{ livro.titulo }}"
-                                onclick="abrirModalEmprestimo(this.getAttribute('data-id'), this.getAttribute('data-titulo'))">
+                        <button class="btn-emprestar" data-id="{{ livro.id_livro }}" data-titulo="{{ livro.titulo }}"
+                            onclick="abrirModalEmprestimo(this.getAttribute('data-id'), this.getAttribute('data-titulo'))">
                             Emprestar
                         </button>
                     </div>
@@ -367,7 +639,9 @@
             <p>Explore milhares de livros online usando a integração com Google Books API</p>
             <a href="{{ url_for('buscar_livros') }}" class="btn-primary">
                 Buscar na Nuvem
-                <svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
             </a>
         </div>
 
@@ -377,10 +651,10 @@
                 <span class="close" onclick="fecharModal()">&times;</span>
                 <h3 style="margin-bottom: 20px; font-size: 1.5rem; color: var(--secondary);">Realizar Empréstimo</h3>
                 <p id="livroInfo" style="margin-bottom: 20px; color: var(--text-light); font-weight: 500;"></p>
-                
+
                 <form id="formEmprestimo">
                     <input type="hidden" id="livroId" name="livro_id">
-                    
+
                     <div class="form-group">
                         <label for="usuarioSelect">Selecione o usuário:</label>
                         <select id="usuarioSelect" name="usuario_id" required>
@@ -392,9 +666,10 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary" style="background-color: var(--primary);">Confirmar</button>
+                        <button type="submit" class="btn-primary"
+                            style="background-color: var(--primary);">Confirmar</button>
                         <button type="button" class="btn-secondary" onclick="fecharModal()">Cancelar</button>
                     </div>
                 </form>
@@ -418,11 +693,12 @@
             modal.style.display = "none";
         }
 
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == modal) {
                 fecharModal();
             }
         }
     </script>
 </body>
+
 </html>
