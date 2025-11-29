@@ -9,39 +9,49 @@
 </head>
 <body>
     <!-- HEADER CONDICIONAL -->
-    <header class="app-header">
-        <div class="container">
-            <a href="{{ url_for('home') }}" class="logo">
-                <div class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                </div>
-                BookFinder
+    <!-- HEADER CONSISTENTE COM PERFIL -->
+<header class="app-header">
+    <div class="container">
+        <a href="{{ url_for('home') }}" class="logo">
+            <div class="logo-icon">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            BookFinder
+        </a>
+        
+        <nav class="main-nav">
+            <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+            <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+            <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+            <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+            
+            <!-- OPÇÃO ADMIN CONDICIONAL -->
+            {% if user_type == 'admin' %}
+            <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
+                <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+                ADMIN
+            </a>
+            {% endif %}
+            
+            <!-- BOTÃO PERFIL (Sempre visível quando logado) -->
+            <a href="{{ url_for('perfil') }}" class="nav-link profile-link">
+                <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                PERFIL
             </a>
             
-            <nav class="main-nav">
-                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
-                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
-                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
-                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
-                
-                <!-- OPÇÃO ADMIN CONDICIONAL -->
-                {% if user_type == 'admin' %}
-                <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
-                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                    ADMIN
-                </a>
-                {% endif %}
-                
-                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
-            </nav>
+            <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+        </nav>
 
-            <button class="mobile-menu-btn">
-                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-        </div>
-    </header>
+        <button class="mobile-menu-btn">
+            <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+    </div>
+</header>
 
     <main>
         {% block content %}{% endblock %}

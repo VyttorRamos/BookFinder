@@ -82,3 +82,30 @@ def RemoverMulta(id_multa):
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+def ListarMultasPorUsuario(id_usuario):
+    conn = None
+    try:
+        conn = DBConexao()
+        if not conn:
+            return False, "Falha na conexão com o DB"
+
+        cursor = conn.cursor(dictionary=True)
+        sql = """
+            SELECT m.id_multa, l.titulo, m.valor, m.status_multa
+            FROM multas m
+            JOIN emprestimos e ON m.id_emprestimo = e.id_emprestimo
+            JOIN copias c ON e.id_copia = c.id_copia
+            JOIN livros l ON c.id_livro = l.id_livro
+            WHERE e.id_usuario = %s AND m.status_multa = 'pendente'
+        """
+        cursor.execute(sql, (id_usuario,))
+        multas = cursor.fetchall()
+        cursor.close()
+        return True, multas
+    except Exception as e:
+        print(f"[ListarMultasPorUsuario] ERRO: {e}")
+        return False, "Erro ao buscar multas do usuário"
+    finally:
+        if conn and conn.is_connected():
+            conn.close()

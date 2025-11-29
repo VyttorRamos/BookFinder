@@ -8,48 +8,96 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Editoras Cadastradas</h1>
+    <!-- HEADER CONSISTENTE -->
+    <header class="app-header">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo">
+                <div class="logo-icon">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                BookFinder
+            </a>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+                
+                {% if user_type == 'admin' %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
+                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    ADMIN
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+            </nav>
+
+            <button class="mobile-menu-btn">
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
     </header>
     
     <main>
+        <h1>Editoras Cadastradas</h1>
+        <p>Gerencie as editoras do sistema</p>
+        
         <div class="table-container">
             {% if editoras %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Endereço</th>
-                        <th>Telefone</th>
-                        <th>Email</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for editora in editoras %}
-                    <tr>
-                        <td>{{ editora.id_editora }}</td>
-                        <td>{{ editora.nome }}</td>
-                        <td>{{ editora.endereco or '-' }}</td>
-                        <td>{{ editora.telefone or '-' }}</td>
-                        <td>{{ editora.email or '-' }}</td>
-                        <td class="action-buttons">
-                            <a href="{{ url_for('editareditora', id=editora.id_editora) }}" class="edit-btn">Editar</a>
-                            <a href="{{ url_for('excluireditora', id=editora.id_editora) }}" class="delete-btn">Excluir</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Endereço</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for editora in editoras %}
+                        <tr>
+                            <td>{{ editora.id_editora }}</td>
+                            <td>{{ editora.nome }}</td>
+                            <td>{{ editora.endereco or '-' }}</td>
+                            <td>{{ editora.telefone or '-' }}</td>
+                            <td>{{ editora.email or '-' }}</td>
+                            <td class="action-buttons">
+                                <a href="{{ url_for('editareditora', id=editora.id_editora) }}" class="btn-edit">Editar</a>
+                                <a href="{{ url_for('excluireditora', id=editora.id_editora) }}" class="btn-delete">Excluir</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <div class="no-data">
+            <div class="no-books">
                 <p>Nenhuma editora cadastrada.</p>
                 <a href="{{ url_for('cadastrareditora') }}" class="btn-primary">Cadastrar Primeira Editora</a>
             </div>
             {% endif %}
         </div>
     </main>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

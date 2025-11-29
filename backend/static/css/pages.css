@@ -145,3 +145,332 @@
     text-align: center;
     margin: 20px 0;
 }
+
+/* =========================================
+   ESTILOS PARA TABELAS
+   ========================================= */
+
+.table-container {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    margin-bottom: 40px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: var(--bg-light);
+    font-weight: 600;
+    color: var(--secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+tr:hover {
+    background-color: #f8fafc;
+}
+
+/* =========================================
+   BOTÕES DE AÇÃO
+   ========================================= */
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-edit, .btn-delete, .disabled-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-edit {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-delete {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+}
+
+.disabled-btn {
+    background-color: var(--text-light);
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* =========================================
+   MENSAGENS DE ALERTA
+   ========================================= */
+
+.warning-message {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.warning-message h3 {
+    color: #d97706;
+    margin-bottom: 15px;
+}
+
+.warning-text {
+    color: #92400e;
+    font-weight: 600;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f59e0b;
+}
+
+/* =========================================
+   PERFIL DO USUÁRIO
+   ========================================= */
+
+.profile-container {
+    display: grid;
+    gap: 30px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar .icon {
+    width: 40px;
+    height: 40px;
+    color: white;
+}
+
+.profile-info h2 {
+    color: var(--secondary);
+    margin-bottom: 5px;
+}
+
+.user-email {
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.user-type {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.user-type.admin {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.user-type.aluno {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.user-type.professor {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.user-type.bibliotecario {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: var(--bg-light);
+    border-radius: 12px;
+}
+
+.stat-item h3 {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.profile-actions {
+    display: grid;
+    gap: 30px;
+}
+
+.action-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.action-card h3 {
+    color: var(--secondary);
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.emprestimos-list {
+    display: grid;
+    gap: 15px;
+}
+
+.emprestimo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+}
+
+.livro-info h4 {
+    color: var(--secondary);
+    margin-bottom: 5px;
+}
+
+.livro-info p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin: 2px 0;
+}
+
+.status-ativo {
+    background: #dcfce7;
+    color: #166534;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-pendente {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-atrasado {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* =========================================
+   RESPONSIVIDADE PARA TABELAS
+   ========================================= */
+
+@media (max-width: 768px) {
+    .table-container {
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    th, td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .emprestimo-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}

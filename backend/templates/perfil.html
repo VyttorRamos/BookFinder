@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - BookFinder</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- HEADER CONSISTENTE -->
+    <header class="app-header">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo">
+                <div class="logo-icon">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                BookFinder
+            </a>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+                
+                {% if user_type == 'admin' %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
+                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    ADMIN
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('perfil') }}" class="nav-link" style="color: var(--primary);">
+                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    PERFIL
+                </a>
+                
+                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+            </nav>
+
+            <button class="mobile-menu-btn">
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
+    </header>
+    
+    <main>
+        <h1>Meu Perfil</h1>
+        <p>Gerencie suas informações pessoais</p>
+        
+        <div class="profile-container">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <svg class="icon" style="width: 60px; height: 60px;" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="profile-info">
+                        <h2>{{ user_name }}</h2>
+                        <p class="user-email">{{ user_email }}</p>
+                        <span class="user-type {{ user_type }}">{{ user_type|title }}</span>
+                    </div>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <h3>Livros Emprestados</h3>
+                        <p class="stat-number">{{ emprestimos_ativos|length }}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>Multas Pendentes</h3>
+                        <p class="stat-number">{{ multas_pendentes|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <div class="action-card">
+                    <h3>Informações Pessoais</h3>
+                    <form action="{{ url_for('atualizar_perfil') }}" method="POST" class="contact-form">
+                        <div class="form-group">
+                            <label for="nome_completo">Nome Completo</label>
+                            <input type="text" id="nome_completo" name="nome_completo" value="{{ user_name }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="{{ user_email }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input type="text" id="telefone" name="telefone" value="{{ usuario.telefone or '' }}" placeholder="(11) 99999-9999">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="senha_atual">Senha Atual (para alterar senha)</label>
+                            <input type="password" id="senha_atual" name="senha_atual" placeholder="Digite sua senha atual">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nova_senha">Nova Senha</label>
+                            <input type="password" id="nova_senha" name="nova_senha" placeholder="Digite a nova senha">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmar_senha">Confirmar Nova Senha</label>
+                            <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme a nova senha">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Salvar Alterações</button>
+                        </div>
+                    </form>
+                </div>
+                
+                {% if emprestimos_ativos %}
+                <div class="action-card">
+                    <h3>Meus Empréstimos Ativos</h3>
+                    <div class="emprestimos-list">
+                        {% for emprestimo in emprestimos_ativos %}
+                        <div class="emprestimo-item">
+                            <div class="livro-info">
+                                <h4>{{ emprestimo.titulo }}</h4>
+                                <p>Data de empréstimo: {{ emprestimo.data_emprestimo }}</p>
+                                <p>Data de devolução: {{ emprestimo.data_devolucao }}</p>
+                            </div>
+                            <div class="emprestimo-status">
+                                <span class="status-ativo">Ativo</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
+</body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</html>

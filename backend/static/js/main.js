@@ -368,3 +368,23 @@ document.addEventListener("DOMContentLoaded", function () {
     senhaInput.focus();
   });
 });
+
+// Menu Mobile
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const mainNav = document.querySelector('.main-nav');
+    
+    if (mobileMenuBtn && mainNav) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mainNav.classList.toggle('active');
+        });
+    }
+    
+    // Fechar menu ao clicar em um link (mobile)
+    const navLinks = document.querySelectorAll('.nav-link, .btn-logout');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            mainNav.classList.remove('active');
+        });
+    });
+});

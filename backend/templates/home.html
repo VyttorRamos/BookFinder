@@ -515,7 +515,7 @@
 </head>
 
 <body>
-    <!-- HEADER CONDICIONAL -->
+    <!-- HEADER CONSISTENTE COM PERFIL -->
     <header class="app-header">
         <div class="container">
             <a href="{{ url_for('home') }}" class="logo">
@@ -543,6 +543,15 @@
                     ADMIN
                 </a>
                 {% endif %}
+
+                <!-- BOTÃO PERFIL (Sempre visível quando logado) -->
+                <a href="{{ url_for('perfil') }}" class="nav-link profile-link">
+                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    PERFIL
+                </a>
 
                 <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
             </nav>

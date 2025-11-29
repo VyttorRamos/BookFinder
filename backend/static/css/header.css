@@ -146,10 +146,92 @@ nav.main-nav {
     display: none; /* Remove a linha inferior do hover */
 }
 
+/* =========================================
+   LINK PERFIL NA NAVBAR
+   ========================================= */
+
+.profile-link {
+    color: var(--primary) !important;
+    font-weight: 700;
+    position: relative;
+}
+
+.profile-link:hover {
+    color: var(--primary-dark) !important;
+}
+
+.profile-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--primary);
+    transition: width 0.3s;
+}
+
+.profile-link:hover::after {
+    width: 100%;
+}
+
+/* Destaque quando na página de perfil */
+.profile-link.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 50px;
+    margin: 0 10px;
+}
+
+.profile-link.active::after {
+    display: none;
+}
+
 /* Indicador visual para mobile */
 @media (max-width: 900px) {
     .admin-link {
         margin: 5px 0;
         text-align: center;
+    }
+}
+
+/* Menu Mobile */
+@media (max-width: 900px) {
+    .main-nav {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        background: var(--white);
+        flex-direction: column;
+        padding: 20px;
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 999;
+    }
+    
+    .main-nav.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .nav-link, .btn-logout {
+        margin: 10px 0;
+        text-align: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .nav-link:last-child, .btn-logout:last-child {
+        border-bottom: none;
+    }
+    
+    .admin-link, .profile-link {
+        margin: 10px 0 !important;
     }
 }

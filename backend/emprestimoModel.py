@@ -209,3 +209,29 @@ def ListarAtrasados():
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+def ListarEmprestimosPorUsuario(id_usuario):
+    conn = None
+    try:
+        conn = DBConexao()
+        if not conn:
+            return False, "Falha na conexão com o DB"
+
+        cursor = conn.cursor(dictionary=True)
+        sql = """
+            SELECT e.id_emprestimo, l.titulo, e.dt_emprestimo, e.dt_prevista_devolucao 
+            FROM emprestimos e
+            JOIN copias c ON e.id_copia = c.id_copia
+            JOIN livros l ON c.id_livro = l.id_livro
+            WHERE e.id_usuario = %s AND e.status_emprestimo = 'ativo'
+        """
+        cursor.execute(sql, (id_usuario,))
+        emprestimos = cursor.fetchall()
+        cursor.close()
+        return True, emprestimos
+    except Exception as e:
+        print(f"[ListarEmprestimosPorUsuario] ERRO: {e}")
+        return False, "Erro ao buscar empréstimos do usuário"
+    finally:
+        if conn and conn.is_connected():
+            conn.close()

@@ -9,12 +9,13 @@ import random
 import requests
 
 # Importação dos modelos
-from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario)
+from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario, AtualizaHashSenha)
 from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarLivro, DeletarLivro)
 from generoModel import (ListarGeneros, CadastrarGenero, PegaGeneroPorId, AtualizarGenero, DeletarGenero)
-from emprestimoModel import (ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados)
-from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta)
+from emprestimoModel import (ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados, ListarEmprestimosPorUsuario)
+from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta, ListarMultasPorUsuario)
 from editoraModel import (ListarEditoras, CadastrarEditora, PegaEditoraPorId, AtualizarEditora, DeletarEditora)
+from auth.auth_utils import SenhaHash, VerificaSenha
 
 load_dotenv()
 
@@ -181,6 +182,71 @@ def login():
         captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
         captcha_correta=resposta
     )
+
+# --- PERFIL DO USUÁRIO ---
+@app.route("/perfil")
+def perfil():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    ok, usuario = PegaUserPorId(user_id)
+    
+    if not ok:
+        flash('Erro ao carregar perfil', 'error')
+        return redirect(url_for('home'))
+    
+    # Buscar empréstimos ativos do usuário
+    ok_emprestimos, emprestimos_ativos = ListarEmprestimosPorUsuario(user_id)
+    
+    # Buscar multas pendentes do usuário
+    ok_multas, multas_pendentes = ListarMultasPorUsuario(user_id)
+    
+    return render_template('perfil.html',
+                         user_type=session.get('user_type'),
+                         user_name=session.get('user_name'),
+                         user_email=session.get('user_email'),
+                         usuario=usuario,
+                         emprestimos_ativos=emprestimos_ativos if ok_emprestimos else [],
+                         multas_pendentes=multas_pendentes if ok_multas else [])
+
+@app.route("/atualizar-perfil", methods=["POST"])
+def atualizar_perfil():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    nome_completo = request.form['nome_completo']
+    email = request.form['email']
+    telefone = request.form.get('telefone', '')
+    senha_atual = request.form.get('senha_atual', '')
+    nova_senha = request.form.get('nova_senha', '')
+    
+    # Atualizar informações básicas
+    ok, message = AtualizarUsuario(user_id, nome_completo, email, telefone, session.get('user_type'))
+    
+    if not ok:
+        flash('Erro ao atualizar perfil: ' + message, 'error')
+        return redirect(url_for('perfil'))
+    
+    # Atualizar senha se fornecida
+    if senha_atual and nova_senha:
+        # Verificar senha atual
+        usuario = PegaUserPorEmail(email)
+        if usuario and VerificaSenha(usuario['senha'], senha_atual):
+            # Atualizar senha
+            nova_hash = SenhaHash(nova_senha)
+            AtualizaHashSenha(user_id, nova_hash)
+            flash('Senha atualizada com sucesso!', 'success')
+        else:
+            flash('Senha atual incorreta!', 'error')
+    
+    # Atualizar sessão
+    session['user_name'] = nome_completo
+    session['user_email'] = email
+    
+    flash('Perfil atualizado com sucesso!', 'success')
+    return redirect(url_for('perfil'))
 
 @app.route("/generos")
 def generos():
