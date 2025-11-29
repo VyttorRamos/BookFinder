@@ -21,6 +21,7 @@
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('buscar_livros') }}" class="nav-link">BUSCAR LIVROS</a>
                 <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
                 <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
                 
@@ -46,6 +47,17 @@
         <h1>Empréstimos Ativos</h1>
         <p>Gerencie os empréstimos do sistema</p>
         
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
         <div class="table-container">
             {% if emprestimos %}
             <div class="table-responsive">
@@ -56,7 +68,8 @@
                             <th>Livro</th>
                             <th>Usuário</th>
                             <th>Data Empréstimo</th>
-                            <th>Data Devolução</th>
+                            <th>Data Devolução Prevista</th>
+                            <th>Status</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -66,8 +79,13 @@
                             <td>{{ emprestimo.id_emprestimo }}</td>
                             <td>{{ emprestimo.titulo }}</td>
                             <td>{{ emprestimo.nome_completo }}</td>
-                            <td>{{ emprestimo.data_emprestimo }}</td>
-                            <td>{{ emprestimo.data_devolucao }}</td>
+                            <td>{{ emprestimo.data_emprestimo.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ emprestimo.data_devolucao_prevista.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <span class="status-{{ emprestimo.status }}">
+                                    {{ emprestimo.status|title }}
+                                </span>
+                            </td>
                             <td class="action-buttons">
                                 <a href="{{ url_for('renovar', id=emprestimo.id_emprestimo) }}" class="btn-edit">Renovar</a>
                                 <a href="{{ url_for('devolverlivro', id=emprestimo.id_emprestimo) }}" class="btn-delete">Devolver</a>

@@ -29,7 +29,7 @@ def ListarLivros():
         if conn and conn.is_connected():
             conn.close()
 
-def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None):
+def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None, quantidade_total=1):
     conn = None
     cursor = None
     try:
@@ -39,9 +39,20 @@ def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_c
         
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO livros (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa) 
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa))
+            INSERT INTO livros (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa, quantidade_total, quantidade_disponivel) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa, quantidade_total, quantidade_total))
+        
+        livro_id = cursor.lastrowid
+        
+        # Criar cópias do livro
+        for i in range(quantidade_total):
+            cod_interno = f"{livro_id}-{i+1}"
+            cursor.execute("""
+                INSERT INTO copias (id_livro, cod_interno, status_copia)
+                VALUES (%s, %s, 'disponivel')
+            """, (livro_id, cod_interno))
+        
         conn.commit()
         return True, "Livro cadastrado com sucesso!"
     except mysql.connector.Error as err:
@@ -84,7 +95,7 @@ def PegaLivroPorId(id_livro):
         if conn and conn.is_connected():
             conn.close()
 
-def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None):
+def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None, quantidade_total=None):
     conn = None
     cursor = None
     try:
@@ -92,39 +103,52 @@ def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=
         if conn is None:
             return False, "Erro: Não foi possível conectar ao banco de dados"
         
-        # Construir a query dinamicamente baseado nos campos fornecidos
-        campos = []
-        valores = []
+        # Buscar livro atual para manter a quantidade disponível correta
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT quantidade_total, quantidade_disponivel FROM livros WHERE id_livro = %s", (id_livro,))
+        livro_atual = cursor.fetchone()
         
-        campos.append("titulo = %s")
-        valores.append(titulo)
+        if not livro_atual:
+            return False, "Livro não encontrado."
         
-        if isbn is not None:
-            campos.append("isbn = %s")
-            valores.append(isbn)
-            
-        if ano_publicacao is not None:
-            campos.append("ano_publicacao = %s")
-            valores.append(ano_publicacao)
-            
-        if id_editora is not None:
-            campos.append("id_editora = %s")
-            valores.append(id_editora)
-            
-        if id_categoria is not None:
-            campos.append("id_categoria = %s")
-            valores.append(id_categoria)
-            
-        if capa is not None:
-            campos.append("capa = %s")
-            valores.append(capa)
-        
-        valores.append(id_livro)
-        
-        query = f"UPDATE livros SET {', '.join(campos)} WHERE id_livro = %s"
+        # Calcular nova quantidade disponível se a quantidade total mudar
+        if quantidade_total is not None:
+            diferenca = quantidade_total - livro_atual['quantidade_total']
+            nova_quantidade_disponivel = livro_atual['quantidade_disponivel'] + diferenca
+        else:
+            quantidade_total = livro_atual['quantidade_total']
+            nova_quantidade_disponivel = livro_atual['quantidade_disponivel']
         
         cursor = conn.cursor()
-        cursor.execute(query, valores)
+        cursor.execute("""
+            UPDATE livros 
+            SET titulo = %s, isbn = %s, ano_publicacao = %s, id_editora = %s, 
+                id_categoria = %s, capa = %s, quantidade_total = %s, quantidade_disponivel = %s
+            WHERE id_livro = %s
+        """, (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa, quantidade_total, nova_quantidade_disponivel, id_livro))
+        
+        # Atualizar cópias se a quantidade total mudou
+        if quantidade_total is not None:
+            # Contar cópias existentes
+            cursor.execute("SELECT COUNT(*) as total_copias FROM copias WHERE id_livro = %s", (id_livro,))
+            total_copias = cursor.fetchone()['total_copias']
+            
+            if quantidade_total > total_copias:
+                # Adicionar novas cópias
+                for i in range(total_copias + 1, quantidade_total + 1):
+                    cod_interno = f"{id_livro}-{i}"
+                    cursor.execute("""
+                        INSERT INTO copias (id_livro, cod_interno, status_copia)
+                        VALUES (%s, %s, 'disponivel')
+                    """, (id_livro, cod_interno))
+            elif quantidade_total < total_copias:
+                # Remover cópias extras (apenas as disponíveis)
+                cursor.execute("""
+                    DELETE FROM copias 
+                    WHERE id_livro = %s AND status_copia = 'disponivel'
+                    LIMIT %s
+                """, (id_livro, total_copias - quantidade_total))
+        
         conn.commit()
         return True, "Livro atualizado com sucesso!"
     except mysql.connector.Error as err:
@@ -147,10 +171,14 @@ def DeletarLivro(id_livro):
         
         cursor = conn.cursor()
         
-        # Verificar se o livro tem cópias ou empréstimos
-        cursor.execute("SELECT * FROM copias WHERE id_livro = %s", (id_livro,))
+        # Verificar se o livro tem empréstimos ativos
+        cursor.execute("""
+            SELECT * FROM emprestimos e
+            JOIN copias c ON e.id_copia = c.id_copia
+            WHERE c.id_livro = %s AND e.status_emprestimo = 'ativo'
+        """, (id_livro,))
         if cursor.fetchone():
-            return False, "Não é possível excluir o livro, pois existem cópias cadastradas."
+            return False, "Não é possível excluir o livro, pois existem empréstimos ativos."
             
         cursor.execute("DELETE FROM livros WHERE id_livro = %s", (id_livro,))
         conn.commit()
@@ -162,5 +190,26 @@ def DeletarLivro(id_livro):
     finally:
         if cursor:
             cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+
+def VerificarDisponibilidade(id_livro):
+    """Verifica se o livro está disponível para empréstimo"""
+    conn = None
+    try:
+        conn = DBConexao()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT COUNT(*) as copias_disponiveis 
+            FROM copias 
+            WHERE id_livro = %s AND status_copia = 'disponivel'
+        """, (id_livro,))
+        resultado = cursor.fetchone()
+        
+        disponivel = resultado['copias_disponiveis'] > 0
+        return True, disponivel
+    except Exception as e:
+        return False, f"Erro ao verificar disponibilidade: {str(e)}"
+    finally:
         if conn and conn.is_connected():
             conn.close()

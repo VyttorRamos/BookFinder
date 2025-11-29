@@ -131,3 +131,46 @@ CREATE TABLE hist_acoes (
     dt_acao DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_histAcoes_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4;
+
+
+-- Atualização no banco:
+-- Adicionar colunas de quantidade nos livros
+ALTER TABLE livros 
+ADD COLUMN quantidade_total INT DEFAULT 1,
+ADD COLUMN quantidade_disponivel INT DEFAULT 1;
+
+-- Adicionar coluna de renovação nos empréstimos
+ALTER TABLE emprestimos 
+ADD COLUMN renovado BOOLEAN DEFAULT FALSE;
+
+-- Adicionar colunas adicionais nas multas
+ALTER TABLE multas 
+ADD COLUMN dias_atraso INT NULL,
+ADD COLUMN id_usuario INT NULL;
+
+-- Atualizar a foreign key da multa para usuário
+ALTER TABLE multas 
+ADD CONSTRAINT fk_multas_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario);
+
+-- Atualizar livros existentes
+UPDATE livros SET quantidade_total = 1, quantidade_disponivel = 1 
+WHERE quantidade_total IS NULL OR quantidade_disponivel IS NULL limit 1;
+
+CREATE TABLE configuracoes (
+    id_config INT AUTO_INCREMENT PRIMARY KEY,
+    chave VARCHAR(100) UNIQUE NOT NULL,
+    valor VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    categoria VARCHAR(50) DEFAULT 'geral',
+    dt_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    dt_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB CHARSET=utf8mb4;
+
+-- Inserir configurações padrão
+INSERT INTO configuracoes (chave, valor, descricao, categoria) VALUES
+('multa_por_dia', '2.00', 'Valor da multa por dia de atraso (R$)', 'multas'),
+('limite_emprestimos', '3', 'Número máximo de empréstimos por usuário', 'emprestimos'),
+('prazo_aluno', '15', 'Prazo de empréstimo para alunos (dias)', 'emprestimos'),
+('prazo_professor', '30', 'Prazo de empréstimo para professores (dias)', 'emprestimos'),
+('limite_renovacoes', '1', 'Número máximo de renovações por empréstimo', 'emprestimos'),
+('dias_renovacao', '15', 'Dias adicionais ao renovar empréstimo', 'emprestimos');
