@@ -2,13 +2,14 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - BookFinder</title>
-    <!-- CSS Estático -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
 
+<body>
     <style>
         /* --- IDENTIDADE VISUAL (Moderna) --- */
         :root {
@@ -512,10 +513,7 @@
             }
         }
     </style>
-</head>
-
-<body>
-    <!-- HEADER CONSISTENTE COM PERFIL -->
+    <!-- HEADER CONSISTENTE -->
     <header class="app-header">
         <div class="container">
             <a href="{{ url_for('home') }}" class="logo">
@@ -531,10 +529,10 @@
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('buscar_livros') }}" class="nav-link">BUSCAR LIVROS</a>
                 <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
                 <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
 
-                <!-- OPÇÃO ADMIN CONDICIONAL -->
                 {% if user_type == 'admin' %}
                 <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
                     <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
@@ -544,15 +542,7 @@
                 </a>
                 {% endif %}
 
-                <!-- BOTÃO PERFIL (Sempre visível quando logado) -->
-                <a href="{{ url_for('perfil') }}" class="nav-link profile-link">
-                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    PERFIL
-                </a>
-
+                <a href="{{ url_for('perfil') }}" class="nav-link">PERFIL</a>
                 <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
             </nav>
 
@@ -567,82 +557,52 @@
     </header>
 
     <main>
-        <h1>Bem-vindo ao BookFinder</h1>
-        <p>Explore nosso catálogo e descubra novas leituras para todos os gostos.</p>
+        <h1>Bem-vindo, {{ user_name }}!</h1>
 
-        <!-- Barra de Busca -->
-        <div class="search-container">
-            <form id="search-form">
-                <input type="text" id="search-input" placeholder="Busque por título, autor ou categoria...">
-                <button type="submit">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    Buscar
-                </button>
-            </form>
-        </div>
+        <!-- Seção de Livros Recomendados -->
+        <section class="recommended-section">
+            <h2>Livros Recomendados para Você</h2>
+            <div class="recomendacao-placeholder">
+                <p>Em breve, você verá aqui livros recomendados baseados no seu perfil de leitura.</p>
+                <!-- Espaço reservado para implementação futura da lógica de recomendação -->
+            </div>
+        </section>
 
-        <!-- Seção de Destaques -->
-        <section id="destaques" class="book-section">
-            <h2>
-                <svg class="icon" style="color: var(--primary);" viewBox="0 0 24 24">
-                    <polygon
-                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                    </polygon>
-                </svg>
-                Livros em Destaque
-            </h2>
-
+        <!-- Seção de Livros Cadastrados -->
+        <section class="all-books-section">
+            <h2>Explore Nosso Acervo</h2>
             {% if livros %}
-            <div class="book-grid">
+            <div class="livros-grid">
                 {% for livro in livros %}
-                <div class="book-card" data-titulo="{{ livro.titulo.lower() }}"
-                    data-categoria="{{ livro.categoria_nome.lower() if livro.categoria_nome else '' }}"
-                    data-autor="{{ livro.autor.lower() if livro.autor else '' }}">
-
-                    <div class="book-card-image">
+                <div class="livro-card">
+                    <div class="livro-image">
                         {% if livro.capa %}
-                        <img src="{{ livro.capa }}" alt="Capa do livro {{ livro.titulo }}">
+                        <img src="{{ url_for('static', filename='uploads/' + livro.capa) }}" alt="{{ livro.titulo }}">
                         {% else %}
-                        <div class="book-placeholder">📖</div>
+                        <div class="capa-placeholder">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                        </div>
                         {% endif %}
                     </div>
-
-                    <div class="book-card-info">
+                    <div class="livro-info">
                         <h3>{{ livro.titulo }}</h3>
-                        <p class="book-author">
-                            {% if livro.autor %} {{ livro.autor }} {% else %} Autor desconhecido {% endif %}
-                        </p>
-
-                        <div class="book-meta">
-                            <span>{{ livro.ano_publicacao if livro.ano_publicacao else '-' }}</span>
-                            {% if livro.categoria_nome %}
-                            <span class="tag">{{ livro.categoria_nome }}</span>
-                            {% elif livro.genero %}
-                            <span class="tag">{{ livro.genero }}</span>
-                            {% endif %}
-                        </div>
-
-                        <!-- CORREÇÃO AQUI: Usando data-attributes para evitar erros de sintaxe JS no editor -->
-                        <button class="btn-emprestar" data-id="{{ livro.id_livro }}" data-titulo="{{ livro.titulo }}"
-                            onclick="abrirModalEmprestimo(this.getAttribute('data-id'), this.getAttribute('data-titulo'))">
-                            Emprestar
-                        </button>
+                        <p><strong>ISBN:</strong> {{ livro.isbn or 'Não informado' }}</p>
+                        <p><strong>Ano:</strong> {{ livro.ano_publicacao or 'Não informado' }}</p>
+                        <p><strong>Categoria:</strong> {{ livro.categoria_nome or 'Não informada' }}</p>
+                        <p><strong>Editora:</strong> {{ livro.editora_nome or 'Não informada' }}</p>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="no-books">
-                <p>Ainda não há livros cadastrados no sistema.</p>
-                <a href="{{ url_for('cadastrarlivro') }}" class="btn-primary">Cadastrar Primeiro Livro</a>
+            <div class="no-livros">
+                <p>Nenhum livro cadastrado no momento.</p>
             </div>
             {% endif %}
         </section>
-
-        <!-- Banner API Google Books -->
         <div class="feature-card">
             <h3>Não encontrou o que procura?</h3>
             <p>Explore milhares de livros online usando a integração com Google Books API</p>
@@ -653,39 +613,21 @@
                 </svg>
             </a>
         </div>
-
-        <!-- Modal para Empréstimo -->
-        <div id="modalEmprestimo" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="fecharModal()">&times;</span>
-                <h3 style="margin-bottom: 20px; font-size: 1.5rem; color: var(--secondary);">Realizar Empréstimo</h3>
-                <p id="livroInfo" style="margin-bottom: 20px; color: var(--text-light); font-weight: 500;"></p>
-
-                <form id="formEmprestimo">
-                    <input type="hidden" id="livroId" name="livro_id">
-
-                    <div class="form-group">
-                        <label for="usuarioSelect">Selecione o usuário:</label>
-                        <select id="usuarioSelect" name="usuario_id" required>
-                            <option value="">Selecione um usuário...</option>
-                            {% for usuario in usuarios %}
-                            <option value="{{ usuario.id_usuario }}">
-                                {{ usuario.nome_completo }} - {{ usuario.email }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary"
-                            style="background-color: var(--primary);">Confirmar</button>
-                        <button type="button" class="btn-secondary" onclick="fecharModal()">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
     </main>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
 </body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 </html>

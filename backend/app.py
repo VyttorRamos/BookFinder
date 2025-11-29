@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from functools import wraps
 import random
 import requests
+from werkzeug.utils import secure_filename
 
 # Importação dos modelos
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario, AtualizaHashSenha)
@@ -28,6 +29,18 @@ AcessoExpirado = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 900))
 RefreshExpirado = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES", 604800))
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=AcessoExpirado)
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(seconds=RefreshExpirado)
+
+# Configurações para upload de imagens
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Criar diretório de uploads se não existir
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 jwt = JWTManager(app)
 
@@ -250,8 +263,30 @@ def atualizar_perfil():
 
 @app.route("/generos")
 def generos():
+    ok, generos_lista = ListarGeneros()
+    if not ok:
+        generos_lista = []
+    
     user_type = session.get('user_type', 'aluno')
-    return render_template('generos.html', user_type=user_type)
+    return render_template('generos.html', generos=generos_lista, user_type=user_type)
+
+@app.route("/genero/<int:id_genero>")
+def livros_por_genero(id_genero):
+    ok, todos_livros = ListarLivros()
+    if not ok:
+        livros_filtrados = []
+    else:
+        livros_filtrados = [livro for livro in todos_livros if livro.get('id_categoria') == id_genero]
+    
+    ok_genero, genero = PegaGeneroPorId(id_genero)
+    if not ok_genero:
+        genero = {'nome': 'Gênero Desconhecido'}
+    
+    user_type = session.get('user_type', 'aluno')
+    return render_template('livros_por_genero.html', 
+                          livros=livros_filtrados, 
+                          genero=genero, 
+                          user_type=user_type)
 
 @app.route("/sobre")
 def sobre():
@@ -468,24 +503,35 @@ def cadastrarlivro():
         id_editora = request.form.get('id_editora')
         id_categoria = request.form.get('id_categoria')
         
-        if not titulo:
-            user_type = session.get('user_type')
-            return render_template('livros/cadastrarlivro.html', 
-                                   error="Título do livro é obrigatório",
-                                   user_type=user_type)
+        # Processar upload da capa
+        capa = None
+        if 'capa' in request.files:
+            file = request.files['capa']
+            if file and file.filename != '':
+                if allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    capa = filename
         
-        ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria)
+        if not titulo:
+            return render_template_with_editoras_categorias(
+                'livros/cadastrarlivro.html', 
+                error="Título do livro é obrigatório"
+            )
+        
+        ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria, capa)
         if not ok:
-            user_type = session.get('user_type')
-            return render_template('livros/cadastrarlivro.html', 
-                                   error=message, titulo=titulo, isbn=isbn, 
-                                   ano_publicacao=ano_publicacao,
-                                   user_type=user_type)
+            return render_template_with_editoras_categorias(
+                'livros/cadastrarlivro.html', 
+                error=message, 
+                titulo=titulo, 
+                isbn=isbn, 
+                ano_publicacao=ano_publicacao
+            )
         
         return redirect(url_for('listarlivros'))
     
-    user_type = session.get('user_type')
-    return render_template('livros/cadastrarlivro.html', user_type=user_type)
+    return render_template_with_editoras_categorias('livros/cadastrarlivro.html')
 
 @app.route("/editarlivro/<int:id>", methods=["GET", "POST"])
 @admin_required
@@ -497,24 +543,38 @@ def editarlivro(id):
         id_editora = request.form.get('id_editora')
         id_categoria = request.form.get('id_categoria')
         
+        # Processar upload da capa
+        capa = None
+        if 'capa' in request.files:
+            file = request.files['capa']
+            if file and file.filename != '':
+                if allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    capa = filename
+        
         if not titulo:
             ok, livro = PegaLivroPorId(id)
             if not ok:
                 return render_template('error.html', message=livro)
             user_type = session.get('user_type')
-            return render_template('livros/editarlivro.html', 
-                                   livro=livro, error="Título do livro é obrigatório",
-                                   user_type=user_type)
+            return render_template_with_editoras_categorias(
+                'livros/editarlivro.html', 
+                livro=livro, error="Título do livro é obrigatório",
+                user_type=user_type
+            )
         
-        ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
+        ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria, capa)
         if not ok:
             ok, livro = PegaLivroPorId(id)
             if not ok:
                 return render_template('error.html', message=livro)
             user_type = session.get('user_type')
-            return render_template('livros/editarlivro.html', 
-                                   livro=livro, error=message,
-                                   user_type=user_type)
+            return render_template_with_editoras_categorias(
+                'livros/editarlivro.html', 
+                livro=livro, error=message,
+                user_type=user_type
+            )
         
         return redirect(url_for('listarlivros'))
     
@@ -523,7 +583,7 @@ def editarlivro(id):
         return render_template('error.html', message=livro)
     
     user_type = session.get('user_type')
-    return render_template('livros/editarlivro.html', livro=livro, user_type=user_type)
+    return render_template_with_editoras_categorias('livros/editarlivro.html', livro=livro, user_type=user_type)
 
 @app.route("/update_livro/<int:id>", methods=["POST"])
 @admin_required
@@ -782,6 +842,24 @@ def removermulta(id):
 
     user_type = session.get('user_type')
     return render_template('multas/removermulta.html', multa=multa, user_type=user_type)
+
+# ---------------- FUNÇÕES AUXILIARES ----------------
+def render_template_with_editoras_categorias(template, **kwargs):
+    """Função auxiliar para carregar editoras e categorias nos templates"""
+    ok_editoras, editoras = ListarEditoras()
+    ok_categorias, categorias = ListarGeneros()
+    
+    if not ok_editoras:
+        editoras = []
+    if not ok_categorias:
+        categorias = []
+    
+    user_type = session.get('user_type')
+    return render_template(template, 
+                          editoras=editoras, 
+                          categorias=categorias, 
+                          user_type=user_type, 
+                          **kwargs)
 
 # ---------------- API AUTH ----------------
 @app.route("/auth/register", methods=["POST"])

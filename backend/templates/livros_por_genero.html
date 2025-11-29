@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gêneros - BookFinder</title>
+    <title>Livros do Gênero - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -21,7 +21,6 @@
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
-                <a href="{{ url_for('buscar_livros') }}" class="nav-link">BUSCAR LIVROS</a>
                 <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
                 <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
                 
@@ -45,25 +44,36 @@
     </header>
     
     <main>
-        <h1>Gêneros Literários</h1>
-        <p>Explore livros por categoria</p>
+        <h1>Livros do Gênero: {{ genero.nome }}</h1>
+        <p>{{ genero.descricao or '' }}</p>
         
-        <div class="generos-container">
-            {% if generos %}
-            <div class="generos-grid">
-                {% for genero in generos %}
-                <a href="{{ url_for('livros_por_genero', id_genero=genero.id_categoria) }}" class="genero-card">
-                    <div class="genero-icon">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <div class="livros-container">
+            {% if livros %}
+            <div class="livros-grid">
+                {% for livro in livros %}
+                <div class="livro-card">
+                    <div class="livro-image">
+                        {% if livro.capa %}
+                        <img src="{{ url_for('static', filename='uploads/' + livro.capa) }}" alt="{{ livro.titulo }}">
+                        {% else %}
+                        <div class="capa-placeholder">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        </div>
+                        {% endif %}
                     </div>
-                    <h3>{{ genero.nome }}</h3>
-                    <p>{{ genero.descricao or 'Descrição não disponível' }}</p>
-                </a>
+                    <div class="livro-info">
+                        <h3>{{ livro.titulo }}</h3>
+                        <p><strong>ISBN:</strong> {{ livro.isbn or 'Não informado' }}</p>
+                        <p><strong>Ano:</strong> {{ livro.ano_publicacao or 'Não informado' }}</p>
+                        <p><strong>Editora:</strong> {{ livro.editora_nome or 'Não informada' }}</p>
+                    </div>
+                </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="no-generos">
-                <p>Nenhum gênero cadastrado no momento.</p>
+            <div class="no-livros">
+                <p>Nenhum livro encontrado para este gênero.</p>
+                <a href="{{ url_for('generos') }}" class="btn-primary">Voltar aos Gêneros</a>
             </div>
             {% endif %}
         </div>

@@ -15,6 +15,7 @@ def ListarLivros():
             FROM livros l 
             LEFT JOIN categorias c ON l.id_categoria = c.id_categoria 
             LEFT JOIN editoras e ON l.id_editora = e.id_editora
+            ORDER BY l.titulo
         """)
         livros = cursor.fetchall()
         return True, livros
@@ -28,7 +29,7 @@ def ListarLivros():
         if conn and conn.is_connected():
             conn.close()
 
-def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None):
+def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None):
     conn = None
     cursor = None
     try:
@@ -38,9 +39,9 @@ def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_c
         
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO livros (titulo, isbn, ano_publicacao, id_editora, id_categoria) 
-            VALUES (%s, %s, %s, %s, %s)
-        """, (titulo, isbn, ano_publicacao, id_editora, id_categoria))
+            INSERT INTO livros (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa) 
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa))
         conn.commit()
         return True, "Livro cadastrado com sucesso!"
     except mysql.connector.Error as err:
@@ -83,7 +84,7 @@ def PegaLivroPorId(id_livro):
         if conn and conn.is_connected():
             conn.close()
 
-def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None):
+def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None):
     conn = None
     cursor = None
     try:
@@ -91,12 +92,39 @@ def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=
         if conn is None:
             return False, "Erro: Não foi possível conectar ao banco de dados"
         
+        # Construir a query dinamicamente baseado nos campos fornecidos
+        campos = []
+        valores = []
+        
+        campos.append("titulo = %s")
+        valores.append(titulo)
+        
+        if isbn is not None:
+            campos.append("isbn = %s")
+            valores.append(isbn)
+            
+        if ano_publicacao is not None:
+            campos.append("ano_publicacao = %s")
+            valores.append(ano_publicacao)
+            
+        if id_editora is not None:
+            campos.append("id_editora = %s")
+            valores.append(id_editora)
+            
+        if id_categoria is not None:
+            campos.append("id_categoria = %s")
+            valores.append(id_categoria)
+            
+        if capa is not None:
+            campos.append("capa = %s")
+            valores.append(capa)
+        
+        valores.append(id_livro)
+        
+        query = f"UPDATE livros SET {', '.join(campos)} WHERE id_livro = %s"
+        
         cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE livros 
-            SET titulo = %s, isbn = %s, ano_publicacao = %s, id_editora = %s, id_categoria = %s 
-            WHERE id_livro = %s
-        """, (titulo, isbn, ano_publicacao, id_editora, id_categoria, id_livro))
+        cursor.execute(query, valores)
         conn.commit()
         return True, "Livro atualizado com sucesso!"
     except mysql.connector.Error as err:
