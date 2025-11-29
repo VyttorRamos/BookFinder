@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,24 +8,28 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
     <!-- HEADER CONSISTENTE -->
     <header class="app-header">
         <div class="container">
             <a href="{{ url_for('home') }}" class="logo">
                 <div class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
                 </div>
                 BookFinder
             </a>
-            
+
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
                 <a href="{{ url_for('buscar_livros') }}" class="nav-link">BUSCAR LIVROS</a>
                 <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
                 <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
-                
+
                 {% if user_type == 'admin' %}
                 <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
                     <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
@@ -33,41 +38,49 @@
                     ADMIN
                 </a>
                 {% endif %}
-                
+
                 <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
             </nav>
 
             <button class="mobile-menu-btn">
-                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
             </button>
         </div>
     </header>
-    
+
     <main>
         <h1>Cadastrar Livro</h1>
         <p>Adicione um novo livro ao acervo</p>
-        
+
         <div class="contact-container">
             {% if error %}
             <div class="error">
                 {{ error }}
             </div>
             {% endif %}
-            
-            <form action="{{ url_for('cadastrarlivro') }}" method="POST" class="contact-form" enctype="multipart/form-data">
+
+            <form action="{{ url_for('cadastrarlivro') }}" method="POST" class="contact-form"
+                enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="titulo">Título *</label>
-                    <input type="text" id="titulo" name="titulo" value="{{ titulo or '' }}" required placeholder="Digite o título do livro">
+                    <input type="text" id="titulo" name="titulo" value="{{ titulo or '' }}" required
+                        placeholder="Digite o título do livro">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="isbn">ISBN</label>
-                    <input type="text" id="isbn" name="isbn" value="{{ isbn or '' }}" placeholder="Código ISBN (opcional)">
+                    <input type="text" id="isbn" name="isbn" value="{{ isbn or '' }}"
+                        placeholder="Código ISBN (opcional)">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="ano_publicacao">Ano de Publicação</label>
-                    <input type="number" id="ano_publicacao" name="ano_publicacao" value="{{ ano_publicacao or '' }}" placeholder="Ex: 2023" min="1000" max="2030">
+                    <input type="number" id="ano_publicacao" name="ano_publicacao" value="{{ ano_publicacao or '' }}"
+                        placeholder="Ex: 2023" min="1000" max="2030">
                 </div>
 
                 <div class="form-group">
@@ -75,31 +88,40 @@
                     <input type="file" id="capa" name="capa" accept="image/*">
                     <small>Formatos aceitos: JPG, PNG, GIF</small>
                 </div>
-                
+
+                <div class="form-group">
+                    <label for="quantidade_total">Quantidade de Cópias</label>
+                    <input type="number" id="quantidade_total" name="quantidade_total"
+                        value="{{ quantidade_total or 1 }}" min="1" max="50" required>
+                    <small>Número de cópias físicas disponíveis</small>
+                </div>
+
                 <div class="form-group">
                     <label for="id_editora">Editora</label>
                     <select id="id_editora" name="id_editora">
                         <option value="">Selecione uma editora...</option>
                         {% for editora in editoras %}
-                        <option value="{{ editora.id_editora }}" {% if id_editora == editora.id_editora %}selected{% endif %}>
+                        <option value="{{ editora.id_editora }}" {% if id_editora==editora.id_editora %}selected{% endif
+                            %}>
                             {{ editora.nome }}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_categoria">Categoria</label>
                     <select id="id_categoria" name="id_categoria">
                         <option value="">Selecione uma categoria...</option>
                         {% for categoria in categorias %}
-                        <option value="{{ categoria.id_categoria }}" {% if id_categoria == categoria.id_categoria %}selected{% endif %}>
+                        <option value="{{ categoria.id_categoria }}" {% if id_categoria==categoria.id_categoria
+                            %}selected{% endif %}>
                             {{ categoria.nome }}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
-                
+
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Cadastrar Livro</button>
                     <a href="{{ url_for('listarlivros') }}" class="btn-secondary">Cancelar</a>
@@ -122,4 +144,5 @@
     </footer>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </html>

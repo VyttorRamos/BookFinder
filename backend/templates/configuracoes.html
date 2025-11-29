@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - BookFinder</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- HEADER CONSISTENTE -->
+    <header class="app-header">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo">
+                <div class="logo-icon">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                BookFinder
+            </a>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link" style="color: var(--primary);">ADMIN</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+            </nav>
+
+            <button class="mobile-menu-btn">
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <h1>Configurações do Sistema</h1>
+        <p>Configure as regras de empréstimos e multas</p>
+
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message {% if 'Erro' in message %}error{% else %}success{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="config-container">
+            <form action="{{ url_for('configuracoes') }}" method="POST" class="config-form">
+                
+                <!-- Seção: Configurações de Empréstimos -->
+                <div class="config-section">
+                    <h2>Configurações de Empréstimos</h2>
+                    
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="limite_emprestimos">Limite de Empréstimos por Usuário</label>
+                            <input type="number" id="limite_emprestimos" name="limite_emprestimos" 
+                                   value="{{ configuracoes.limite_emprestimos.valor if configuracoes.limite_emprestimos else '3' }}" 
+                                   min="1" max="10" required>
+                            <small>{{ configuracoes.limite_emprestimos.descricao if configuracoes.limite_emprestimos else 'Número máximo de empréstimos simultâneos por usuário' }}</small>
+                        </div>
+
+                        <div class="config-item">
+                            <label for="prazo_aluno">Prazo para Alunos (dias)</label>
+                            <input type="number" id="prazo_aluno" name="prazo_aluno" 
+                                   value="{{ configuracoes.prazo_aluno.valor if configuracoes.prazo_aluno else '15' }}" 
+                                   min="1" max="60" required>
+                            <small>{{ configuracoes.prazo_aluno.descricao if configuracoes.prazo_aluno else 'Prazo de empréstimo para alunos' }}</small>
+                        </div>
+
+                        <div class="config-item">
+                            <label for="prazo_professor">Prazo para Professores (dias)</label>
+                            <input type="number" id="prazo_professor" name="prazo_professor" 
+                                   value="{{ configuracoes.prazo_professor.valor if configuracoes.prazo_professor else '30' }}" 
+                                   min="1" max="90" required>
+                            <small>{{ configuracoes.prazo_professor.descricao if configuracoes.prazo_professor else 'Prazo de empréstimo para professores' }}</small>
+                        </div>
+
+                        <div class="config-item">
+                            <label for="limite_renovacoes">Limite de Renovações</label>
+                            <input type="number" id="limite_renovacoes" name="limite_renovacoes" 
+                                   value="{{ configuracoes.limite_renovacoes.valor if configuracoes.limite_renovacoes else '1' }}" 
+                                   min="0" max="5" required>
+                            <small>{{ configuracoes.limite_renovacoes.descricao if configuracoes.limite_renovacoes else 'Número máximo de renovações por empréstimo' }}</small>
+                        </div>
+
+                        <div class="config-item">
+                            <label for="dias_renovacao">Dias por Renovação</label>
+                            <input type="number" id="dias_renovacao" name="dias_renovacao" 
+                                   value="{{ configuracoes.dias_renovacao.valor if configuracoes.dias_renovacao else '15' }}" 
+                                   min="1" max="30" required>
+                            <small>{{ configuracoes.dias_renovacao.descricao if configuracoes.dias_renovacao else 'Dias adicionais ao renovar um empréstimo' }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção: Configurações de Multas -->
+                <div class="config-section">
+                    <h2>Configurações de Multas</h2>
+                    
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="multa_por_dia">Multa por Dia de Atraso (R$)</label>
+                            <input type="number" id="multa_por_dia" name="multa_por_dia" 
+                                   value="{{ configuracoes.multa_por_dia.valor if configuracoes.multa_por_dia else '2.00' }}" 
+                                   min="0.50" max="10.00" step="0.10" required>
+                            <small>{{ configuracoes.multa_por_dia.descricao if configuracoes.multa_por_dia else 'Valor da multa por cada dia de atraso' }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Salvar Configurações</button>
+                    <a href="{{ url_for('dashboard') }}" class="btn-secondary">Voltar ao Dashboard</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
+</body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</html>

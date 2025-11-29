@@ -1,5 +1,7 @@
 import mysql.connector
 from configDB import DBConexao
+from datetime import datetime
+from emprestimoModel import ObterConfiguracoesEmprestimo
 
 def ListarMultas():
     try:
@@ -9,17 +11,19 @@ def ListarMultas():
             SELECT 
                 m.id_multa,
                 m.valor,
+                m.dias_atraso,
                 m.status_multa,
                 m.dt_criacao,
                 m.dt_pagamento,
                 e.id_emprestimo,
                 l.titulo,
-                u.nome_completo
+                u.nome_completo,
+                u.id_usuario
             FROM multas m
             JOIN emprestimos e ON m.id_emprestimo = e.id_emprestimo
             JOIN copias c ON e.id_copia = c.id_copia
             JOIN livros l ON c.id_livro = l.id_livro
-            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            JOIN usuarios u ON m.id_usuario = u.id_usuario
             ORDER BY m.dt_criacao DESC
         """
         cursor.execute(sql)
@@ -47,7 +51,7 @@ def PegaMultaPorId(id_multa):
             JOIN emprestimos e ON m.id_emprestimo = e.id_emprestimo
             JOIN copias c ON e.id_copia = c.id_copia
             JOIN livros l ON c.id_livro = l.id_livro
-            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            JOIN usuarios u ON m.id_usuario = u.id_usuario
             WHERE m.id_multa = %s
         """
         cursor.execute(sql, (id_multa,))
@@ -67,45 +71,123 @@ def RemoverMulta(id_multa):
         conn = DBConexao()
         cursor = conn.cursor()
         
-        # Atualizar o status da multa para 'cancelado' em vez de deletar
-        cursor.execute("""
-            UPDATE multas 
-            SET status_multa = 'cancelado', dt_pagamento = NOW() 
-            WHERE id_multa = %s
-        """, (id_multa,))
+        # Verificar se a multa existe
+        cursor.execute("SELECT * FROM multas WHERE id_multa = %s", (id_multa,))
+        multa = cursor.fetchone()
+        
+        if not multa:
+            return False, "Multa não encontrada."
+        
+        # Remover a multa
+        cursor.execute("DELETE FROM multas WHERE id_multa = %s", (id_multa,))
         
         conn.commit()
-        return True, "Multa removida/cancelada com sucesso!"
+        return True, "Multa removida com sucesso!"
     except mysql.connector.Error as err:
+        conn.rollback()
         return False, f"Erro ao remover multa: {err}"
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
 
-def ListarMultasPorUsuario(id_usuario):
-    conn = None
+def QuitarMulta(id_multa):
     try:
         conn = DBConexao()
-        if not conn:
-            return False, "Falha na conexão com o DB"
+        cursor = conn.cursor()
+        
+        # Verificar se a multa existe
+        cursor.execute("SELECT * FROM multas WHERE id_multa = %s", (id_multa,))
+        multa = cursor.fetchone()
+        
+        if not multa:
+            return False, "Multa não encontrada."
+        
+        # Marcar multa como paga
+        dt_pagamento = datetime.now()
+        cursor.execute("""
+            UPDATE multas 
+            SET status_multa = 'pago', dt_pagamento = %s 
+            WHERE id_multa = %s
+        """, (dt_pagamento, id_multa))
+        
+        conn.commit()
+        return True, "Multa quitada com sucesso!"
+    except mysql.connector.Error as err:
+        conn.rollback()
+        return False, f"Erro ao quitar multa: {err}"
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
 
+def ListarMultasPorUsuario(id_usuario):
+    try:
+        conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
         sql = """
-            SELECT m.id_multa, l.titulo, m.valor, m.status_multa
+            SELECT 
+                m.id_multa,
+                m.valor,
+                m.dias_atraso,
+                m.status_multa,
+                m.dt_criacao,
+                l.titulo
             FROM multas m
             JOIN emprestimos e ON m.id_emprestimo = e.id_emprestimo
             JOIN copias c ON e.id_copia = c.id_copia
             JOIN livros l ON c.id_livro = l.id_livro
-            WHERE e.id_usuario = %s AND m.status_multa = 'pendente'
+            WHERE m.id_usuario = %s
+            ORDER BY m.dt_criacao DESC
         """
         cursor.execute(sql, (id_usuario,))
         multas = cursor.fetchall()
-        cursor.close()
         return True, multas
     except Exception as e:
-        print(f"[ListarMultasPorUsuario] ERRO: {e}")
-        return False, "Erro ao buscar multas do usuário"
+        return False, f"Erro ao buscar multas do usuário: {str(e)}"
     finally:
         if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def CalcularMultaAtraso(id_emprestimo):
+    """Calcula multa para empréstimo em atraso"""
+    try:
+        conn = DBConexao()
+        cursor = conn.cursor(dictionary=True)
+        hoje = datetime.now().date()
+        
+        # Obter configurações do sistema
+        config = ObterConfiguracoesEmprestimo()
+        
+        # Buscar dados do empréstimo
+        cursor.execute("""
+            SELECT *, DATEDIFF(%s, dt_prevista_devolucao) as dias_atraso
+            FROM emprestimos 
+            WHERE id_emprestimo = %s
+        """, (hoje, id_emprestimo))
+        
+        emprestimo = cursor.fetchone()
+        
+        if not emprestimo:
+            return False, "Empréstimo não encontrado."
+            
+        if emprestimo['dias_atraso'] <= 0:
+            return False, "Empréstimo não está em atraso."
+        
+        # Valor da multa baseado na configuração
+        valor_multa = emprestimo['dias_atraso'] * config['multa_por_dia']
+        
+        return True, {
+            'dias_atraso': emprestimo['dias_atraso'],
+            'valor_multa': valor_multa,
+            'data_prevista': emprestimo['dt_prevista_devolucao'],
+            'multa_por_dia': config['multa_por_dia']
+        }
+        
+    except Exception as e:
+        return False, f"Erro ao calcular multa: {str(e)}"
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
             conn.close()

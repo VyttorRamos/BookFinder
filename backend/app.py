@@ -11,11 +11,12 @@ from werkzeug.utils import secure_filename
 
 # Importação dos modelos
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario, AtualizaHashSenha)
-from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarLivro, DeletarLivro)
+from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarLivro, DeletarLivro, VerificarDisponibilidade)
 from generoModel import (ListarGeneros, CadastrarGenero, PegaGeneroPorId, AtualizarGenero, DeletarGenero)
 from emprestimoModel import (ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados, ListarEmprestimosPorUsuario)
-from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta, ListarMultasPorUsuario)
+from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta, ListarMultasPorUsuario, QuitarMulta)
 from editoraModel import (ListarEditoras, CadastrarEditora, PegaEditoraPorId, AtualizarEditora, DeletarEditora)
+from configModel import (BuscarConfiguracoes, AtualizarConfiguracoesEmLote, BuscarConfiguracaoPorChave)
 from auth.auth_utils import SenhaHash, VerificaSenha
 
 load_dotenv()
@@ -324,6 +325,82 @@ def dashboard():
     user_name = session.get('user_name')
     return render_template('dashboard.html', user_type=user_type, user_name=user_name)
 
+# ---------------- CONFIGURAÇÕES ----------------
+@app.route("/configuracoes", methods=['GET', 'POST'])
+@admin_required
+def configuracoes():
+    if request.method == 'POST':
+        # Coletar todas as configurações do formulário
+        configuracoes_dict = {}
+        
+        # Configurações de empréstimos
+        configuracoes_dict['limite_emprestimos'] = request.form.get('limite_emprestimos')
+        configuracoes_dict['prazo_aluno'] = request.form.get('prazo_aluno')
+        configuracoes_dict['prazo_professor'] = request.form.get('prazo_professor')
+        configuracoes_dict['limite_renovacoes'] = request.form.get('limite_renovacoes')
+        configuracoes_dict['dias_renovacao'] = request.form.get('dias_renovacao')
+        
+        # Configurações de multas
+        configuracoes_dict['multa_por_dia'] = request.form.get('multa_por_dia')
+        
+        # Validar dados
+        try:
+            # Converter para os tipos corretos
+            limite_emprestimos = int(configuracoes_dict['limite_emprestimos'])
+            prazo_aluno = int(configuracoes_dict['prazo_aluno'])
+            prazo_professor = int(configuracoes_dict['prazo_professor'])
+            limite_renovacoes = int(configuracoes_dict['limite_renovacoes'])
+            dias_renovacao = int(configuracoes_dict['dias_renovacao'])
+            multa_por_dia = float(configuracoes_dict['multa_por_dia'])
+            
+            # Validações básicas
+            if limite_emprestimos < 1 or limite_emprestimos > 10:
+                flash('Limite de empréstimos deve estar entre 1 e 10', 'error')
+                return redirect(url_for('configuracoes'))
+                
+            if prazo_aluno < 1 or prazo_aluno > 60:
+                flash('Prazo para alunos deve estar entre 1 e 60 dias', 'error')
+                return redirect(url_for('configuracoes'))
+                
+            if prazo_professor < 1 or prazo_professor > 90:
+                flash('Prazo para professores deve estar entre 1 e 90 dias', 'error')
+                return redirect(url_for('configuracoes'))
+                
+            if limite_renovacoes < 0 or limite_renovacoes > 5:
+                flash('Limite de renovações deve estar entre 0 e 5', 'error')
+                return redirect(url_for('configuracoes'))
+                
+            if dias_renovacao < 1 or dias_renovacao > 30:
+                flash('Dias por renovação deve estar entre 1 e 30', 'error')
+                return redirect(url_for('configuracoes'))
+                
+            if multa_por_dia < 0.50 or multa_por_dia > 10.00:
+                flash('Multa por dia deve estar entre R$ 0,50 e R$ 10,00', 'error')
+                return redirect(url_for('configuracoes'))
+                
+        except ValueError:
+            flash('Por favor, insira valores válidos', 'error')
+            return redirect(url_for('configuracoes'))
+        
+        # Atualizar configurações
+        ok, message = AtualizarConfiguracoesEmLote(configuracoes_dict)
+        
+        if not ok:
+            flash(f'Erro ao salvar configurações: {message}', 'error')
+        else:
+            flash('Configurações atualizadas com sucesso!', 'success')
+        
+        return redirect(url_for('configuracoes'))
+    
+    # Buscar configurações atuais
+    ok, configuracoes = BuscarConfiguracoes()
+    if not ok:
+        flash('Erro ao carregar configurações', 'error')
+        configuracoes = {}
+    
+    user_type = session.get('user_type')
+    return render_template('configuracoes.html', configuracoes=configuracoes, user_type=user_type)
+
 # ---------------- USUÁRIOS ----------------
 @app.route("/listaruser")
 @admin_required
@@ -502,6 +579,7 @@ def cadastrarlivro():
         ano_publicacao = request.form.get('ano_publicacao', '').strip()
         id_editora = request.form.get('id_editora')
         id_categoria = request.form.get('id_categoria')
+        quantidade_total = request.form.get('quantidade_total', 1)
         
         # Processar upload da capa
         capa = None
@@ -519,16 +597,18 @@ def cadastrarlivro():
                 error="Título do livro é obrigatório"
             )
         
-        ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria, capa)
+        ok, message = CadastrarLivro(titulo, isbn, ano_publicacao, id_editora, id_categoria, capa, int(quantidade_total))
         if not ok:
             return render_template_with_editoras_categorias(
                 'livros/cadastrarlivro.html', 
                 error=message, 
                 titulo=titulo, 
                 isbn=isbn, 
-                ano_publicacao=ano_publicacao
+                ano_publicacao=ano_publicacao,
+                quantidade_total=quantidade_total
             )
         
+        flash('Livro cadastrado com sucesso!', 'success')
         return redirect(url_for('listarlivros'))
     
     return render_template_with_editoras_categorias('livros/cadastrarlivro.html')
@@ -737,7 +817,9 @@ def delete_genero(id):
 def listaremprestimos():
     ok, emprestimos = ListarEmprestimos()
     if not ok:
-        return render_template('error.html', message=emprestimos)
+        flash('Erro ao carregar empréstimos', 'error')
+        emprestimos = []
+    
     user_type = session.get('user_type')
     return render_template('emprestimos/listaremprestimos.html', emprestimos=emprestimos, user_type=user_type)
 
@@ -747,18 +829,33 @@ def emprestar():
     if request.method == 'POST':
         id_livro = request.form['id_livro']
         id_usuario = request.form['id_usuario']
+        
         ok, message = RealizarEmprestimo(id_livro, id_usuario)
         if not ok:
-            return render_template('error.html', message=message)
+            flash(f'Erro: {message}', 'error')
+            return redirect(url_for('emprestar'))
+        
+        flash('Empréstimo realizado com sucesso!', 'success')
         return redirect(url_for('listaremprestimos'))
     
+    # Buscar livros disponíveis
     ok_livros, livros = ListarLivros()
+    livros_disponiveis = []
+    if ok_livros:
+        for livro in livros:
+            ok_disp, disponivel = VerificarDisponibilidade(livro['id_livro'])
+            if ok_disp and disponivel:
+                livros_disponiveis.append(livro)
+    
     ok_usuarios, usuarios = ListarUsuarios()
-    if not ok_livros or not ok_usuarios:
-        return render_template('error.html', message="Erro ao buscar livros ou usuários")
+    if not ok_usuarios:
+        usuarios = []
     
     user_type = session.get('user_type')
-    return render_template('emprestimos/emprestar.html', livros=livros, usuarios=usuarios, user_type=user_type)
+    return render_template('emprestimos/emprestar.html', 
+                         livros=livros_disponiveis, 
+                         usuarios=usuarios, 
+                         user_type=user_type)
 
 @app.route("/devolverlivro/<int:id>", methods=['GET', 'POST'])
 @admin_required
@@ -766,12 +863,15 @@ def devolverlivro(id):
     if request.method == 'POST':
         ok, message = DevolverLivro(id)
         if not ok:
-            return render_template('error.html', message=message)
+            flash(f'Erro: {message}', 'error')
+        else:
+            flash('Livro devolvido com sucesso!', 'success')
         return redirect(url_for('listaremprestimos'))
 
     ok, emprestimo = PegaEmprestimoPorId(id)
     if not ok:
-        return render_template('error.html', message=emprestimo)
+        flash('Empréstimo não encontrado', 'error')
+        return redirect(url_for('listaremprestimos'))
 
     user_type = session.get('user_type')
     return render_template('emprestimos/devolver.html', emprestimo=emprestimo, user_type=user_type)
@@ -781,7 +881,9 @@ def devolverlivro(id):
 def devolver_emprestimo(id):
     ok, message = DevolverLivro(id)
     if not ok:
-        return render_template('error.html', message=message)
+        flash(f'Erro: {message}', 'error')
+    else:
+        flash('Livro devolvido com sucesso!', 'success')
     return redirect(url_for('listaremprestimos'))
 
 @app.route("/renovar/<int:id>", methods=['GET', 'POST'])
@@ -790,12 +892,15 @@ def renovar(id):
     if request.method == 'POST':
         ok, message = RenovarEmprestimo(id)
         if not ok:
-            return render_template('error.html', message=message)
+            flash(f'Erro: {message}', 'error')
+        else:
+            flash('Empréstimo renovado com sucesso!', 'success')
         return redirect(url_for('listaremprestimos'))
 
     ok, emprestimo = PegaEmprestimoPorId(id)
     if not ok:
-        return render_template('error.html', message=emprestimo)
+        flash('Empréstimo não encontrado', 'error')
+        return redirect(url_for('listaremprestimos'))
     
     user_type = session.get('user_type')
     return render_template('emprestimos/renovar.html', emprestimo=emprestimo, user_type=user_type)
@@ -805,7 +910,9 @@ def renovar(id):
 def update_emprestimo(id):
     ok, message = RenovarEmprestimo(id)
     if not ok:
-        return render_template('error.html', message=message)
+        flash(f'Erro: {message}', 'error')
+    else:
+        flash('Empréstimo renovado com sucesso!', 'success')
     return redirect(url_for('listaremprestimos'))
 
 @app.route("/listaratrasados")
@@ -813,7 +920,9 @@ def update_emprestimo(id):
 def listaratrasados():
     ok, emprestimos = ListarAtrasados()
     if not ok:
-        return render_template('error.html', message=emprestimos)
+        flash('Erro ao carregar empréstimos atrasados', 'error')
+        emprestimos = []
+    
     user_type = session.get('user_type')
     return render_template('emprestimos/listaratrasados.html', emprestimos=emprestimos, user_type=user_type)
 
@@ -823,7 +932,9 @@ def listaratrasados():
 def listarmultas():
     ok, multas = ListarMultas()
     if not ok:
-        return render_template('error.html', message=multas)
+        flash('Erro ao carregar multas', 'error')
+        multas = []
+    
     user_type = session.get('user_type')
     return render_template('multas/listarmultas.html', multas=multas, user_type=user_type)
 
@@ -833,15 +944,28 @@ def removermulta(id):
     if request.method == 'POST':
         ok, message = RemoverMulta(id)
         if not ok:
-            return render_template('error.html', message=message)
+            flash(f'Erro: {message}', 'error')
+        else:
+            flash('Multa removida com sucesso!', 'success')
         return redirect(url_for('listarmultas'))
 
     ok, multa = PegaMultaPorId(id)
     if not ok:
-        return render_template('error.html', message=multa)
+        flash('Multa não encontrada', 'error')
+        return redirect(url_for('listarmultas'))
 
     user_type = session.get('user_type')
     return render_template('multas/removermulta.html', multa=multa, user_type=user_type)
+
+@app.route("/quitarmulta/<int:id>", methods=["POST"])
+@admin_required
+def quitarmulta(id):
+    ok, message = QuitarMulta(id)
+    if not ok:
+        flash(f'Erro: {message}', 'error')
+    else:
+        flash('Multa quitada com sucesso!', 'success')
+    return redirect(url_for('listarmultas'))
 
 # ---------------- FUNÇÕES AUXILIARES ----------------
 def render_template_with_editoras_categorias(template, **kwargs):

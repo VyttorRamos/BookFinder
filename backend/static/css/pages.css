@@ -592,6 +592,210 @@ tr:hover {
     color: #6c757d;
 }
 
+/* Estilos para status */
+.status-ativo {
+    background: #d4edda;
+    color: #155724;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-devolvido {
+    background: #e2e3e5;
+    color: #383d41;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-pendente {
+    background: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-paga {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* Mensagens flash */
+.flash-messages {
+    margin-bottom: 1rem;
+}
+
+.flash-message {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.flash-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.flash-message.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* Indicadores de atraso */
+.atraso-alerta {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.atraso-info {
+    background: #ffeaa7;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+/* Botões de ação */
+.btn-quitar {
+    background: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-quitar:hover {
+    background: #218838;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Cards de informações */
+.info-card {
+    background: #f8f9fa;
+    border-left: 4px solid #007bff;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.info-card.warning {
+    border-left-color: #ffc107;
+    background: #fff3cd;
+}
+
+.info-card.danger {
+    border-left-color: #dc3545;
+    background: #f8d7da;
+}
+
+/* Estilos para página de configurações */
+.config-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.config-form {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.config-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.config-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.config-section h2 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.config-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.config-item label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.config-item input,
+.config-item select {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.config-item input:focus,
+.config-item select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.config-item small {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .config-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .config-form {
+        padding: 1rem;
+    }
+    
+    .config-section h2 {
+        font-size: 1.3rem;
+    }
+}
+
 
 /* =========================================
    RESPONSIVIDADE PARA TABELAS
