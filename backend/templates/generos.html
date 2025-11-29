@@ -8,24 +8,98 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
 </head>
 <body>
+    <!-- HEADER CONSISTENTE -->
+    <header class="app-header">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo">
+                <div class="logo-icon">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                BookFinder
+            </a>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+            </nav>
+
+            <button class="mobile-menu-btn">
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
+    </header>
+
     <main>
         <h1>Explore por Gêneros</h1>
         <p>Navegue por nossas categorias e encontre o livro perfeito para o seu gosto.</p>
+        
         <div class="genre-grid">
-            <div class="genre-card"><h3>Ficção Científica</h3></div>
-            <div class="genre-card"><h3>Fantasia</h3></div>
-            <div class="genre-card"><h3>Romance</h3></div>
-            <div class="genre-card"><h3>Mistério e Suspense</h3></div>
-            <div class="genre-card"><h3>Biografia e Memórias</h3></div>
-            <div class="genre-card"><h3>História</h3></div>
-            <div class="genre-card"><h3>Acadêmico e Técnico</h3></div>
-            <div class="genre-card"><h3>Arte e Fotografia</h3></div>
-            <div class="genre-card"><h3>Autoajuda</h3></div>
-            <div class="genre-card"><h3>Clássicos</h3></div>
-            <div class="genre-card"><h3>Poesia</h3></div>
-            <div class="genre-card"><h3>Terror</h3></div>
+            <div class="genre-card">
+                <h3>Ficção Científica</h3>
+                <p>Exploração do futuro e da tecnologia</p>
+            </div>
+            <div class="genre-card">
+                <h3>Fantasia</h3>
+                <p>Mundos mágicos e aventuras épicas</p>
+            </div>
+            <div class="genre-card">
+                <h3>Romance</h3>
+                <p>Histórias de amor e relacionamentos</p>
+            </div>
+            <div class="genre-card">
+                <h3>Mistério e Suspense</h3>
+                <p>Intrigas e investigações</p>
+            </div>
+            <div class="genre-card">
+                <h3>Biografia e Memórias</h3>
+                <p>Histórias reais e inspiradoras</p>
+            </div>
+            <div class="genre-card">
+                <h3>História</h3>
+                <p>Passado e eventos históricos</p>
+            </div>
+            <div class="genre-card">
+                <h3>Acadêmico e Técnico</h3>
+                <p>Conhecimento especializado</p>
+            </div>
+            <div class="genre-card">
+                <h3>Arte e Fotografia</h3>
+                <p>Criatividade visual</p>
+            </div>
+            <div class="genre-card">
+                <h3>Autoajuda</h3>
+                <p>Desenvolvimento pessoal</p>
+            </div>
+            <div class="genre-card">
+                <h3>Clássicos</h3>
+                <p>Obras atemporais</p>
+            </div>
+            <div class="genre-card">
+                <h3>Poesia</h3>
+                <p>Versos e emoções</p>
+            </div>
+            <div class="genre-card">
+                <h3>Terror</h3>
+                <p>Suspense e horror</p>
+            </div>
         </div>
     </main>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,16 +8,21 @@
     <!-- CSS Estático -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
-    
+
     <style>
         /* --- IDENTIDADE VISUAL --- */
         :root {
-            --primary: #f59e0b; /* Amber-500 */
+            --primary: #f59e0b;
+            /* Amber-500 */
             --primary-dark: #d97706;
-            --secondary: #1e293b; /* Slate-800 */
-            --text-main: #334155; /* Slate-700 */
-            --text-light: #64748b; /* Slate-500 */
-            --bg-light: #f8fafc; /* Slate-50 */
+            --secondary: #1e293b;
+            /* Slate-800 */
+            --text-main: #334155;
+            /* Slate-700 */
+            --text-light: #64748b;
+            /* Slate-500 */
+            --bg-light: #f8fafc;
+            /* Slate-50 */
             --white: #ffffff;
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
@@ -24,7 +30,11 @@
             --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: var(--font-main);
@@ -36,8 +46,16 @@
             flex-direction: column;
         }
 
-        a { text-decoration: none; color: var(--primary); font-weight: 600; transition: color 0.3s; }
-        a:hover { color: var(--primary-dark); }
+        a {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+        }
 
         /* --- HEADER SIMPLIFICADO --- */
         .lp-header {
@@ -52,6 +70,7 @@
             top: 0;
             z-index: 1000;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -61,6 +80,7 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .logo {
             display: flex;
             align-items: center;
@@ -71,6 +91,7 @@
             color: var(--secondary);
             cursor: pointer;
         }
+
         .logo-icon {
             background-color: var(--primary);
             color: white;
@@ -78,7 +99,14 @@
             border-radius: 8px;
             display: flex;
         }
-        .icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
 
         /* --- ÁREA DE LOGIN --- */
         .main-content {
@@ -107,7 +135,7 @@
             margin-bottom: 10px;
         }
 
-        .login-card > p {
+        .login-card>p {
             color: var(--text-light);
             margin-bottom: 30px;
             font-size: 0.95rem;
@@ -154,6 +182,7 @@
             border-radius: 10px;
             margin-top: 10px;
         }
+
         .captcha-pergunta strong {
             color: var(--primary-dark);
             font-size: 1.1rem;
@@ -181,6 +210,40 @@
             box-shadow: var(--shadow-lg);
         }
 
+        /* Estilo mostrar senha*/
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+            /* espaço para o botão */
+        }
+
+        .btn-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+        }
+
+        .btn-toggle:focus {
+            outline: 2px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-toggle svg {
+            display: block;
+        }
+
         /* Mensagens de Erro */
         .error-message {
             background-color: #fef2f2;
@@ -198,13 +261,19 @@
             font-size: 0.9rem;
             color: var(--text-light);
         }
-        
+
         @media (max-width: 480px) {
-            .login-card { padding: 30px 20px; }
-            .login-card h1 { font-size: 1.75rem; }
+            .login-card {
+                padding: 30px 20px;
+            }
+
+            .login-card h1 {
+                font-size: 1.75rem;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Header -->
@@ -212,11 +281,14 @@
         <div class="container">
             <a href="{{ url_for('index') }}" class="logo">
                 <div class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
                 </div>
                 BookFinder
             </a>
-            
+
             <!-- Link de volta corrigido para url_for('index') -->
             <a href="{{ url_for('index') }}" style="font-size: 0.9rem; color: var(--text-light); font-weight: 500;">
                 &larr; Voltar para Home
@@ -228,45 +300,87 @@
         <div class="login-card">
             <h1>Bem-vindo de volta!</h1>
             <p>Acesse sua biblioteca pessoal</p>
-            
+
             {% if error %}
             <div class="error-message">
                 {{ error }}
             </div>
             {% endif %}
-            
+
             <form action="{{ url_for('login') }}" method="POST">
                 <div class="form-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" value="{{ email or '' }}" placeholder="seu@email.com" required>
+                    <input type="email" id="email" name="email" value="{{ email or '' }}" placeholder="seu@email.com"
+                        required>
                 </div>
-                
-                <div class="form-group">
+
+                <div class="form-group password-group">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="senha" name="senha" placeholder="••••••••" required
+                            autocomplete="current-password">
+                        <button type="button" id="toggleSenha" aria-label="Mostrar senha" class="btn-toggle">
+                            <!-- svg olho (sem dependências) -->
+                            <svg id="icon-olho" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                
+
                 <div class="form-group">
                     <div class="captcha-container">
-                        <label for="notrobo" style="margin-bottom: 5px; font-size: 0.85rem;">Verificação de Segurança:</label>
+                        <label for="notrobo" style="margin-bottom: 5px; font-size: 0.85rem;">Verificação de
+                            Segurança:</label>
                         <div class="captcha-pergunta" style="margin-bottom: 10px;">
                             Quanto é <strong>{{ captcha_pergunta }}</strong>?
                         </div>
-                        <input type="text" id="notrobo" name="notrobo" placeholder="Digite o resultado numérico" required>
+                        <input type="text" id="notrobo" name="notrobo" placeholder="Digite o resultado numérico"
+                            required>
                         <input type="hidden" name="captcha_correta" value="{{ captcha_correta }}">
                     </div>
                 </div>
-                
+
                 <button type="submit">Entrar</button>
             </form>
-            
+
             <p class="register-link">
                 Ainda não tem uma conta? <a href="{{ url_for('register') }}">Cadastre-se gratuitamente</a>
             </p>
         </div>
     </main>
 
-    <!-- REMOVIDO O SCRIPT main.js PARA EVITAR ERROS E LOOP DE REDIRECIONAMENTO -->
-    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const senhaInput = document.getElementById("senha");
+            const toggleBtn = document.getElementById("toggleSenha");
+
+            if (!senhaInput || !toggleBtn) {
+                // elementos não encontrados — não quebra a página
+                console.warn("Toggle senha: elemento não encontrado (id 'senha' ou 'toggleSenha').");
+                return;
+            }
+
+            // ícones SVG (string) — olho e olho risc
+            const olho = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+            const olhoRisc = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.66 20.66 0 0 1 4.05-5.06"/><path d="M1 1l22 22"/></svg>';
+
+            // inicial: olho (já no HTML), mas vamos garantir
+            toggleBtn.innerHTML = olho;
+
+            toggleBtn.addEventListener("click", function () {
+                const isPassword = senhaInput.getAttribute("type") === "password";
+                senhaInput.setAttribute("type", isPassword ? "text" : "password");
+                toggleBtn.innerHTML = isPassword ? olhoRisc : olho;
+                toggleBtn.setAttribute("aria-label", isPassword ? "Ocultar senha" : "Mostrar senha");
+                // opcional: manter foco no input
+                senhaInput.focus();
+            });
+        });
+    </script>
+
 </body>
+
 </html>

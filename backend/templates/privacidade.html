@@ -3,11 +3,35 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>Política de Privacidade - BookFinder</title>
-    <link rel="icon" type="image/png" href="img/BookFinderIcon.png" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
 </head>
 <body>
+    <!-- HEADER CONSISTENTE -->
+    <header class="app-header">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo">
+                <div class="logo-icon">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                BookFinder
+            </a>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+            </nav>
+
+            <button class="mobile-menu-btn">
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
+    </header>
+
     <main>
         <div class="text-container">
             <h1>Política de Privacidade</h1>
@@ -26,6 +50,19 @@
             <p>O nosso site pode ter links para sites externos que não são operados por nós. Esteja ciente de que não temos controle sobre o conteúdo e práticas desses sites e não podemos aceitar responsabilidade por suas respectivas políticas de privacidade.</p>
         </div>
     </main>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

@@ -50,7 +50,7 @@ def api_buscar_livros():
         return jsonify({"error": "Digite um termo para busca"}), 400
     
     try:
-        # API do Google Books (não precisa de chave!)
+        # API do Google Books 
         url = f"https://www.googleapis.com/books/v1/volumes"
         params = {
             'q': termo,
@@ -88,16 +88,16 @@ def gerar_captcha():
     
     # Garantir que os números sejam sempre inteiros e a operação seja clara
     if operador == '+':
-        num1 = random.randint(1, 20)
-        num2 = random.randint(1, 20)
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 10)
         resposta = num1 + num2
     elif operador == '-':
-        num1 = random.randint(10, 30)
+        num1 = random.randint(10, 10)
         num2 = random.randint(1, num1 - 1)  # Garante resultado positivo
         resposta = num1 - num2
     else:  # multiplicação
         num1 = random.randint(1, 10)
-        num2 = random.randint(1, 5)
+        num2 = random.randint(1, 2)
         resposta = num1 * num2
     
     print(f"DEBUG CAPTCHA: {num1} {operador} {num2} = {resposta}")

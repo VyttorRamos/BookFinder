@@ -6,21 +6,45 @@
     <title>Buscar Livros - BookFinder</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
-    <style>
-        
-    </style>
 </head>
 <body>
-    <header>
-        <h1>🔍 Buscar Livros Online</h1>
+    <!-- HEADER CONSISTENTE -->
+    <header class="app-header">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo">
+                <div class="logo-icon">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                BookFinder
+            </a>
+            
+            <nav class="main-nav">
+                <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
+                <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
+                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
+                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
+            </nav>
+
+            <button class="mobile-menu-btn">
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
     </header>
 
     <main>
-        <div class="busca-container">
+        <h1>🔍 Buscar Livros Online</h1>
+        <p>Explore milhares de livros através da integração com Google Books API</p>
+
+        <div class="search-container">
             <div class="search-box">
                 <input type="text" id="searchInput" 
-                       placeholder="Digite título, autor ou assunto... (ex: Harry Potter, Machado de Assis)">
-                <button onclick="buscarLivros()">🔍 Buscar</button>
+                       placeholder="Digite título, autor ou assunto... (ex: Harry Potter, Machado de Assis)"
+                       class="search-input">
+                <button onclick="buscarLivros()" class="btn-primary">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    Buscar
+                </button>
             </div>
 
             <div id="resultados">
@@ -31,6 +55,19 @@
             </div>
         </div>
     </main>
+
+    <!-- FOOTER CONSISTENTE -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
+                <li><a href="{{ url_for('contato') }}">Contato</a></li>
+                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
+                <li><a href="{{ url_for('termos') }}">Termos</a></li>
+            </ul>
+        </div>
+    </footer>
 
     <script>
         function buscarLivros() {
@@ -58,30 +95,34 @@
                     }
 
                     if (data.livros.length === 0) {
-                        container.innerHTML = '<div class="loading">Nenhum livro encontrado. Tente outros termos.</div>';
+                        container.innerHTML = '<div class="no-books">Nenhum livro encontrado. Tente outros termos.</div>';
                         return;
                     }
 
                     let html = `
-                        <h3>📚 ${data.livros.length} livros encontrados para "${termo}"</h3>
-                        <div class="livros-grid">
+                        <h3 style="margin-bottom: 30px; text-align: center;">📚 ${data.livros.length} livros encontrados para "${termo}"</h3>
+                        <div class="book-grid">
                     `;
 
                     data.livros.forEach(livro => {
                         html += `
-                            <div class="livro-card">
-                                <div class="livro-capa">
+                            <div class="book-card">
+                                <div class="book-card-image">
                                     ${livro.capa ? 
                                         `<img src="${livro.capa}" alt="${livro.titulo}">` : 
-                                        '📖'}
+                                        '<div class="book-placeholder">📖</div>'}
                                 </div>
-                                <div class="livro-info">
-                                    <h4>${livro.titulo}</h4>
-                                    <p><strong>Autor:</strong> ${livro.autores}</p>
-                                    <p><strong>Editora:</strong> ${livro.editora}</p>
-                                    <p><strong>Ano:</strong> ${livro.ano}</p>
-                                    <p class="descricao">${livro.descricao.substring(0, 100)}...</p>
-                                    <a href="${livro.link}" target="_blank" style="color: #007bff; font-size: 14px;">
+                                <div class="book-card-info">
+                                    <h3>${livro.titulo}</h3>
+                                    <p class="book-author"><strong>Autor:</strong> ${livro.autores}</p>
+                                    <div class="book-meta">
+                                        <span><strong>Editora:</strong> ${livro.editora}</span>
+                                        <span><strong>Ano:</strong> ${livro.ano}</span>
+                                    </div>
+                                    <p style="margin: 10px 0; font-size: 0.9rem; color: var(--text-light);">
+                                        ${livro.descricao ? livro.descricao.substring(0, 100) + '...' : 'Descrição não disponível'}
+                                    </p>
+                                    <a href="${livro.link}" target="_blank" class="btn-secondary" style="text-align: center; display: block; margin-top: 10px;">
                                         🔗 Ver mais detalhes
                                     </a>
                                 </div>
