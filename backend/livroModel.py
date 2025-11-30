@@ -99,16 +99,24 @@ def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=
         
         # Buscar livro atual para manter a quantidade disponível correta
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT quantidade_total, quantidade_disponivel FROM livros WHERE id_livro = %s", (id_livro,))
+        cursor.execute("SELECT quantidade_total, quantidade_disponivel, capa FROM livros WHERE id_livro = %s", (id_livro,))
         livro_atual = cursor.fetchone()
         
         if not livro_atual:
             return False, "Livro não encontrado."
         
+        # Se capa for None (não foi enviado novo arquivo), manter a capa atual
+        if capa is None:
+            capa = livro_atual['capa']
+        
         # Calcular nova quantidade disponível se a quantidade total mudar
         if quantidade_total is not None:
             diferenca = quantidade_total - livro_atual['quantidade_total']
             nova_quantidade_disponivel = livro_atual['quantidade_disponivel'] + diferenca
+            
+            # Garantir que a quantidade disponível não seja negativa
+            if nova_quantidade_disponivel < 0:
+                nova_quantidade_disponivel = 0
         else:
             quantidade_total = livro_atual['quantidade_total']
             nova_quantidade_disponivel = livro_atual['quantidade_disponivel']
@@ -122,10 +130,11 @@ def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=
         """, (titulo, isbn, ano_publicacao, id_editora, id_categoria, capa, quantidade_total, nova_quantidade_disponivel, id_livro))
         
         # Atualizar cópias se a quantidade total mudou
-        if quantidade_total is not None:
+        if quantidade_total is not None and quantidade_total != livro_atual['quantidade_total']:
             # Contar cópias existentes
             cursor.execute("SELECT COUNT(*) as total_copias FROM copias WHERE id_livro = %s", (id_livro,))
-            total_copias = cursor.fetchone()['total_copias']
+            resultado = cursor.fetchone()
+            total_copias = resultado['total_copias']
             
             if quantidade_total > total_copias:
                 # Adicionar novas cópias
@@ -146,8 +155,12 @@ def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=
         conn.commit()
         return True, "Livro atualizado com sucesso!"
     except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
         return False, f"Erro ao atualizar livro: {err}"
     except Exception as e:
+        if conn:
+            conn.rollback()
         return False, f"Erro inesperado ao atualizar livro: {e}"
     finally:
         if cursor:
@@ -165,7 +178,8 @@ def DeletarLivro(id_livro):
         conn.commit()
         return True, "Livro inativado com sucesso!"
     except mysql.connector.Error as err:
-        conn.rollback()
+        if conn:
+            conn.rollback()
         return False, f"Erro ao inativar livro: {err}"
     finally:
         if conn and conn.is_connected():

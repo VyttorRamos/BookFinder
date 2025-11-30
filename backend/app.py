@@ -674,48 +674,88 @@ def editarlivro(id):
         ano_publicacao = request.form.get('ano_publicacao', '').strip()
         id_editora = request.form.get('id_editora')
         id_categoria = request.form.get('id_categoria')
+        quantidade_total = request.form.get('quantidade_total')
         
-        # Processar upload da capa
+        # Converter para tipos apropriados
+        if ano_publicacao:
+            try:
+                ano_publicacao = int(ano_publicacao)
+            except ValueError:
+                ano_publicacao = None
+        
+        if id_editora:
+            try:
+                id_editora = int(id_editora)
+            except ValueError:
+                id_editora = None
+        
+        if id_categoria:
+            try:
+                id_categoria = int(id_categoria)
+            except ValueError:
+                id_categoria = None
+        
+        if quantidade_total:
+            try:
+                quantidade_total = int(quantidade_total)
+            except ValueError:
+                quantidade_total = None
+        
+        # Processar upload da capa - IMPORTANTE: capa será None se não for enviado novo arquivo
         capa = None
         if 'capa' in request.files:
             file = request.files['capa']
-            if file and file.filename != '':
+            if file and file.filename != '' and file.filename != 'undefined':
                 if allowed_file(file.filename):
                     filename = secure_filename(file.filename)
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     capa = filename
+                else:
+                    ok, livro = PegaLivroPorId(id)
+                    if not ok:
+                        return render_template('error.html', message=livro)
+                    return render_template_with_editoras_categorias(
+                        'livros/editarlivro.html', 
+                        livro=livro, 
+                        error="Tipo de arquivo não permitido. Use apenas PNG, JPG, JPEG ou GIF.",
+                        user_type=session.get('user_type')
+                    )
         
         if not titulo:
             ok, livro = PegaLivroPorId(id)
             if not ok:
                 return render_template('error.html', message=livro)
-            user_type = session.get('user_type')
             return render_template_with_editoras_categorias(
                 'livros/editarlivro.html', 
-                livro=livro, error="Título do livro é obrigatório",
-                user_type=user_type
+                livro=livro, 
+                error="Título do livro é obrigatório",
+                user_type=session.get('user_type')
             )
         
-        ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria, capa)
+        ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria, capa, quantidade_total)
         if not ok:
             ok, livro = PegaLivroPorId(id)
             if not ok:
                 return render_template('error.html', message=livro)
-            user_type = session.get('user_type')
             return render_template_with_editoras_categorias(
                 'livros/editarlivro.html', 
-                livro=livro, error=message,
-                user_type=user_type
+                livro=livro, 
+                error=message,
+                user_type=session.get('user_type')
             )
         
+        flash('Livro atualizado com sucesso!', 'success')
         return redirect(url_for('listarlivros'))
     
     ok, livro = PegaLivroPorId(id)
     if not ok:
         return render_template('error.html', message=livro)
     
-    user_type = session.get('user_type')
-    return render_template_with_editoras_categorias('livros/editarlivro.html', livro=livro, user_type=user_type)
+    return render_template_with_editoras_categorias(
+        'livros/editarlivro.html', 
+        livro=livro, 
+        user_type=session.get('user_type')
+    )
 
 @app.route("/update_livro/<int:id>", methods=["POST"])
 @active_user_required
@@ -727,13 +767,43 @@ def update_livro(id):
     id_editora = request.form.get('id_editora')
     id_categoria = request.form.get('id_categoria')
     
+    # Converter para tipos apropriados
+    if ano_publicacao:
+        try:
+            ano_publicacao = int(ano_publicacao)
+        except ValueError:
+            ano_publicacao = None
+    
+    if id_editora:
+        try:
+            id_editora = int(id_editora)
+        except ValueError:
+            id_editora = None
+    
+    if id_categoria:
+        try:
+            id_categoria = int(id_categoria)
+        except ValueError:
+            id_categoria = None
+    
+    # Processar upload da capa
+    capa = None
+    if 'capa' in request.files:
+        file = request.files['capa']
+        if file and file.filename != '' and file.filename != 'undefined':
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                capa = filename
+    
     if not titulo:
         return render_template('error.html', message="Título do livro é obrigatório")
     
-    ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria)
+    ok, message = AtualizarLivro(id, titulo, isbn, ano_publicacao, id_editora, id_categoria, capa)
     if not ok:
         return render_template('error.html', message=message)
     
+    flash('Livro atualizado com sucesso!', 'success')
     return redirect(url_for('listarlivros'))
 
 @app.route("/excluirlivro/<int:id>", methods=["GET", "POST"])
@@ -1049,11 +1119,9 @@ def render_template_with_editoras_categorias(template, **kwargs):
     if not ok_categorias:
         categorias = []
     
-    user_type = session.get('user_type')
     return render_template(template, 
                           editoras=editoras, 
                           categorias=categorias, 
-                          user_type=user_type, 
                           **kwargs)
 
 # ---------------- API AUTH ----------------
