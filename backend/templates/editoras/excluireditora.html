@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excluir Editora - BookFinder</title>
+    <title>Inativar Editora - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
     <!-- HEADER CONSISTENTE -->
     <header class="app-header">
         <div class="container">
             <a href="{{ url_for('home') }}" class="logo">
                 <div class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
                 </div>
                 BookFinder
             </a>
-            
+
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
                 <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
                 <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
-                
+
                 {% if user_type == 'admin' %}
                 <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
                     <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
@@ -32,29 +37,36 @@
                     ADMIN
                 </a>
                 {% endif %}
-                
+
                 <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
             </nav>
 
             <button class="mobile-menu-btn">
-                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
             </button>
         </div>
     </header>
-    
+
     <main>
-        <h1>Excluir Editora</h1>
-        
+
+        <h1>Inativar Editora</h1>
+
         <div class="contact-container">
             <div class="warning-message">
-                <h3>Confirmar Exclusão</h3>
-                <p>Tem certeza que deseja excluir a editora <strong>"{{ editora.nome }}"</strong>?</p>
-                <p class="warning-text">Esta ação não pode ser desfeita.</p>
+                <h3>Confirmar Inativação</h3>
+                <p>Tem certeza que deseja inativar a editora <strong>"{{ editora.nome }}"</strong>?</p>
+                <p class="warning-text">A editora será marcada como inativa e não aparecerá mais nas listagens, mas
+                    os livros associados permanecerão no sistema.</p>
+                <p class="warning-text">Esta ação pode ser revertida posteriormente editando a editora.</p>
             </div>
-            
+
             <form action="{{ url_for('delete_editora', id=editora.id_editora) }}" method="POST">
                 <div class="form-actions">
-                    <button type="submit" class="btn-delete">Confirmar Exclusão</button>
+                    <button type="submit" class="btn-delete">Confirmar Inativação</button>
                     <a href="{{ url_for('listareditoras') }}" class="btn-secondary">Cancelar</a>
                 </div>
             </form>
@@ -75,4 +87,5 @@
     </footer>
 </body>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </html>

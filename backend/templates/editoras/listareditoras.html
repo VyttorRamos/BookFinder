@@ -70,7 +70,7 @@
                             <td>{{ editora.email or '-' }}</td>
                             <td class="action-buttons">
                                 <a href="{{ url_for('editareditora', id=editora.id_editora) }}" class="btn-edit">Editar</a>
-                                <a href="{{ url_for('excluireditora', id=editora.id_editora) }}" class="btn-delete">Excluir</a>
+                                <a href="{{ url_for('excluireditora', id=editora.id_editora) }}" class="btn-delete">Inativar</a>
                             </td>
                         </tr>
                         {% endfor %}

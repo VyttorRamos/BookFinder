@@ -2,31 +2,25 @@ import mysql.connector
 from configDB import DBConexao
 
 def ListarLivros():
-    conn = None
-    cursor = None
     try:
         conn = DBConexao()
-        if conn is None:
-            return False, "Erro: Não foi possível conectar ao banco de dados"
-        
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT l.*, c.nome as categoria_nome, e.nome as editora_nome 
+        sql = """
+            SELECT l.*, e.nome as editora_nome, c.nome as categoria_nome 
             FROM livros l 
+            LEFT JOIN editoras e ON l.id_editora = e.id_editora 
             LEFT JOIN categorias c ON l.id_categoria = c.id_categoria 
-            LEFT JOIN editoras e ON l.id_editora = e.id_editora
+            WHERE l.status_livro = 'ativo'
             ORDER BY l.titulo
-        """)
+        """
+        cursor.execute(sql)
         livros = cursor.fetchall()
         return True, livros
     except mysql.connector.Error as err:
         return False, f"Erro ao listar livros: {err}"
-    except Exception as e:
-        return False, f"Erro inesperado ao listar livros: {e}"
     finally:
-        if cursor:
-            cursor.close()
         if conn and conn.is_connected():
+            cursor.close()
             conn.close()
 
 def CadastrarLivro(titulo, isbn=None, ano_publicacao=None, id_editora=None, id_categoria=None, capa=None, quantidade_total=1):
@@ -162,35 +156,20 @@ def AtualizarLivro(id_livro, titulo, isbn=None, ano_publicacao=None, id_editora=
             conn.close()
 
 def DeletarLivro(id_livro):
-    conn = None
-    cursor = None
     try:
         conn = DBConexao()
-        if conn is None:
-            return False, "Erro: Não foi possível conectar ao banco de dados"
-        
         cursor = conn.cursor()
-        
-        # Verificar se o livro tem empréstimos ativos
-        cursor.execute("""
-            SELECT * FROM emprestimos e
-            JOIN copias c ON e.id_copia = c.id_copia
-            WHERE c.id_livro = %s AND e.status_emprestimo = 'ativo'
-        """, (id_livro,))
-        if cursor.fetchone():
-            return False, "Não é possível excluir o livro, pois existem empréstimos ativos."
-            
-        cursor.execute("DELETE FROM livros WHERE id_livro = %s", (id_livro,))
+        # Em vez de excluir, vamos inativar (usando 'removido' do enum existente)
+        sql = "UPDATE livros SET status_livro = 'removido' WHERE id_livro = %s"
+        cursor.execute(sql, (id_livro,))
         conn.commit()
-        return True, "Livro deletado com sucesso!"
+        return True, "Livro inativado com sucesso!"
     except mysql.connector.Error as err:
-        return False, f"Erro ao deletar livro: {err}"
-    except Exception as e:
-        return False, f"Erro inesperado ao deletar livro: {e}"
+        conn.rollback()
+        return False, f"Erro ao inativar livro: {err}"
     finally:
-        if cursor:
-            cursor.close()
         if conn and conn.is_connected():
+            cursor.close()
             conn.close()
 
 def VerificarDisponibilidade(id_livro):

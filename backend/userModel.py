@@ -1,5 +1,6 @@
+import mysql
 from configDB import DBConexao
-from mysql.connector import Error
+from mysql.connector import Error, MySQLConnection
 from auth.auth_utils import SenhaHash, VerificaSenha
 
 
@@ -11,9 +12,10 @@ def PegaUserPorEmail(email: str):
             return None
 
         cursor = conn.cursor(dictionary=True)
+        # MODIFICADO: Adicionar verificação de status_usuario
         sql = (
             "SELECT id_usuario, nome_completo, email, senha, telefone, "
-            "tipo_usuario, status_usuario FROM usuarios WHERE email = %s LIMIT 1"
+            "tipo_usuario, status_usuario FROM usuarios WHERE email = %s AND status_usuario = 'ativo' LIMIT 1"
         )
         cursor.execute(sql, (email,))
         user = cursor.fetchone()
@@ -34,12 +36,13 @@ def PegaUserPorId(id_usuario: int):
             return None, "Falha na conexão com o DB"
 
         cursor = conn.cursor(dictionary=True)
-        sql = "SELECT id_usuario, nome_completo, email, telefone, tipo_usuario FROM usuarios WHERE id_usuario = %s"
+        # MODIFICADO: Adicionar verificação de status_usuario
+        sql = "SELECT id_usuario, nome_completo, email, telefone, tipo_usuario, status_usuario FROM usuarios WHERE id_usuario = %s AND status_usuario = 'ativo'"
         cursor.execute(sql, (id_usuario,))
         usuario = cursor.fetchone()
         cursor.close()
         if not usuario:
-            return False, "Usuário não encontrado"
+            return False, "Usuário não encontrado ou conta inativa"
         return True, usuario
     except Exception as e:
         print(f"[PegaUserPorId] ERRO: {e}")
@@ -64,8 +67,8 @@ def CadastroUser(nome_completo: str, email: str, plain_password: str,
 
         cursor = conn.cursor()
         sql = (
-            "INSERT INTO usuarios (nome_completo, email, senha, telefone, tipo_usuario) "
-            "VALUES (%s, %s, %s, %s, %s)"
+            "INSERT INTO usuarios (nome_completo, email, senha, telefone, tipo_usuario, status_usuario) "
+            "VALUES (%s, %s, %s, %s, %s, 'ativo')"
         )
         cursor.execute(sql, (nome_completo, email, password_hash, telefone, tipo_usuario))
         conn.commit()
@@ -80,9 +83,10 @@ def CadastroUser(nome_completo: str, email: str, plain_password: str,
             conn.close()
 
 def VerificaLoginUsuario(email: str, SenhaSimples: str):
+    # MODIFICADO: Verificação de usuário ativo já está no PegaUserPorEmail
     usuario = PegaUserPorEmail(email)
     if not usuario:
-        return False, "Credenciais inválidas"
+        return False, "Credenciais inválidas ou conta inativa"
 
     SenhaArmazenada = usuario.get("senha")
     
@@ -126,24 +130,20 @@ def AtualizaHashSenha(id_usuario: int, new_hash: str):
             conn.close()
 
 def ListarUsuarios():
-    conn = None
     try:
         conn = DBConexao()
-        if not conn:
-            return False, "Falha na conexão com o DB"
-
         cursor = conn.cursor(dictionary=True)
-        sql = "SELECT id_usuario, nome_completo, email, telefone, tipo_usuario FROM usuarios"
+        sql = "SELECT * FROM usuarios WHERE status_usuario = 'ativo' ORDER BY nome_completo"
         cursor.execute(sql)
         usuarios = cursor.fetchall()
-        cursor.close()
         return True, usuarios
-    except Exception as e:
-        print(f"[ListarUsuarios] ERRO: {e}")
-        return False, "Erro ao listar usuários"
+    except mysql.connector.Error as err:
+        return False, f"Erro ao listar usuários: {err}"
     finally:
         if conn and conn.is_connected():
+            cursor.close()
             conn.close()
+
 
 def AtualizarUsuario(id_usuario: int, nome_completo: str, email: str, telefone: str, tipo_usuario: str):
     conn = None
@@ -165,22 +165,19 @@ def AtualizarUsuario(id_usuario: int, nome_completo: str, email: str, telefone: 
         if conn and conn.is_connected():
             conn.close()
 
-def DeletarUsuario(id_usuario: int):
-    conn = None
+def DeletarUsuario(id_usuario):
     try:
         conn = DBConexao()
-        if not conn:
-            return False, "Falha na conexão com o DB"
-
         cursor = conn.cursor()
-        sql = "DELETE FROM usuarios WHERE id_usuario = %s"
+        # Em vez de excluir, vamos inativar
+        sql = "UPDATE usuarios SET status_usuario = 'inativo' WHERE id_usuario = %s"
         cursor.execute(sql, (id_usuario,))
         conn.commit()
-        cursor.close()
-        return True, "Usuário deletado com sucesso"
-    except Exception as e:
-        print(f"[DeletarUsuario] ERRO: {e}")
-        return False, "Erro ao deletar usuário"
+        return True, "Usuário inativado com sucesso!"
+    except mysql.connector.Error as err:
+        conn.rollback()
+        return False, f"Erro ao inativar usuário: {err}"
     finally:
         if conn and conn.is_connected():
+            cursor.close()
             conn.close()

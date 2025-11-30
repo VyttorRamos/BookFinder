@@ -66,7 +66,7 @@
                             <td>{{ genero.descricao or '-' }}</td>
                             <td class="action-buttons">
                                 <a href="{{ url_for('editargenero', id=genero.id_categoria) }}" class="btn-edit">Editar</a>
-                                <a href="{{ url_for('excluirgenero', id=genero.id_categoria) }}" class="btn-delete">Excluir</a>
+                                <a href="{{ url_for('excluirgenero', id=genero.id_categoria) }}" class="btn-delete">inativar</a>
                             </td>
                         </tr>
                         {% endfor %}

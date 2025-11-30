@@ -14,7 +14,7 @@ O **BookFinder** é um sistema em desenvolvimento que permite:
 - 🧱 **Conexão com banco de dados MySQL** via módulo `mysql.connector`;
 - ⚙️ **Estrutura modular**, facilitando futuras expansões e manutenção.
 
-Atualmente, o foco está no **backend e na criação do CRUD do sistema** com testes locais.
+Atualmente, o foco está no **Na integração da IA de recomendação** com testes locais.
 
 ---
 

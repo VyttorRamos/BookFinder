@@ -5,7 +5,8 @@ def ListarGeneros():
     try:
         conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM categorias")
+        sql = "SELECT * FROM categorias WHERE status_categoria = 'ativo' ORDER BY nome"
+        cursor.execute(sql)
         generos = cursor.fetchall()
         return True, generos
     except mysql.connector.Error as err:
@@ -65,20 +66,18 @@ def AtualizarGenero(id_genero, nome_genero, descricao=None):
             cursor.close()
             conn.close()
 
-def DeletarGenero(id_genero):
+def DeletarGenero(id_categoria):
     try:
         conn = DBConexao()
         cursor = conn.cursor()
-        # Verificar se a categoria está sendo usada em algum livro
-        cursor.execute("SELECT * FROM livros WHERE id_categoria = %s", (id_genero,))
-        if cursor.fetchone():
-            return False, "Não é possível excluir a categoria, pois ela está associada a livros existentes."
-
-        cursor.execute("DELETE FROM categorias WHERE id_categoria = %s", (id_genero,))
+        # Em vez de excluir, vamos inativar
+        sql = "UPDATE categorias SET status_categoria = 'inativo' WHERE id_categoria = %s"
+        cursor.execute(sql, (id_categoria,))
         conn.commit()
-        return True, "Categoria deletada com sucesso!"
+        return True, "Categoria inativada com sucesso!"
     except mysql.connector.Error as err:
-        return False, f"Erro ao deletar categoria: {err}"
+        conn.rollback()
+        return False, f"Erro ao inativar categoria: {err}"
     finally:
         if conn and conn.is_connected():
             cursor.close()

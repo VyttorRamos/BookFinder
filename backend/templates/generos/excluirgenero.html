@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excluir Categoria - BookFinder</title>
+    <title>Inativar Categoria - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -43,18 +43,19 @@
     </header>
     
     <main>
-        <h1>Excluir Categoria</h1>
+        <h1>Inativar Categoria</h1>
         
         <div class="contact-container">
             <div class="warning-message">
-                <h3>Confirmar Exclusão</h3>
-                <p>Tem certeza que deseja excluir a categoria <strong>"{{ genero.nome }}"</strong>?</p>
-                <p class="warning-text">Esta ação não pode ser desfeita.</p>
+                <h3>Confirmar Inativação</h3>
+                <p>Tem certeza que deseja inativar a categoria <strong>"{{ genero.nome }}"</strong>?</p>
+                <p class="warning-text">A categoria será marcada como inativa e não aparecerá mais nas listagens, mas os livros associados permanecerão no sistema.</p>
+                <p class="warning-text">Esta ação pode ser revertida posteriormente editando a categoria.</p>
             </div>
             
             <form action="{{ url_for('delete_genero', id=genero.id_categoria) }}" method="POST">
                 <div class="form-actions">
-                    <button type="submit" class="btn-delete">Confirmar Exclusão</button>
+                    <button type="submit" class="btn-delete">Confirmar Inativação</button>
                     <a href="{{ url_for('listargeneros') }}" class="btn-secondary">Cancelar</a>
                 </div>
             </form>

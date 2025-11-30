@@ -70,7 +70,7 @@
                             <td>{{ livro.categoria_nome or '-' }}</td>
                             <td class="action-buttons">
                                 <a href="{{ url_for('editarlivro', id=livro.id_livro) }}" class="btn-edit">Editar</a>
-                                <a href="{{ url_for('excluirlivro', id=livro.id_livro) }}" class="btn-delete">Excluir</a>
+                                <a href="{{ url_for('excluirlivro', id=livro.id_livro) }}" class="btn-delete">inativar</a>
                             </td>
                         </tr>
                         {% endfor %}

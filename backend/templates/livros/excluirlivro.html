@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excluir Livro - BookFinder</title>
+    <title>Inativar Livro - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -43,18 +43,19 @@
     </header>
     
     <main>
-        <h1>Excluir Livro</h1>
+        <h1>Inativar Livro</h1>
         
         <div class="contact-container">
             <div class="warning-message">
-                <h3>Confirmar Exclusão</h3>
-                <p>Tem certeza que deseja excluir o livro <strong>"{{ livro.titulo }}"</strong>?</p>
-                <p class="warning-text">Esta ação não pode ser desfeita.</p>
+                <h3>Confirmar Inativação</h3>
+                <p>Tem certeza que deseja inativar o livro <strong>"{{ livro.titulo }}"</strong>?</p>
+                <p class="warning-text">O livro será marcado como removido e não aparecerá mais nas listagens, mas os registros de empréstimos associados permanecerão no sistema.</p>
+                <p class="warning-text">Esta ação pode ser revertida posteriormente editando o livro.</p>
             </div>
             
             <form action="{{ url_for('delete_livro', id=livro.id_livro) }}" method="POST">
                 <div class="form-actions">
-                    <button type="submit" class="btn-delete">Confirmar Exclusão</button>
+                    <button type="submit" class="btn-delete">Confirmar Inativação</button>
                     <a href="{{ url_for('listarlivros') }}" class="btn-secondary">Cancelar</a>
                 </div>
             </form>

@@ -18,4 +18,3 @@ def VerificaSenha(HashArmazenada: str, SenhaSimples: str) ->  Tuple[bool, Option
         return True, None
     except(VerifyMismatchError, VerificationError):
         return False, None
-    

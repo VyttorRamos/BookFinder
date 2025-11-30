@@ -57,6 +57,26 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- DECORATOR PARA VERIFICAR SE USUÁRIO ESTÁ ATIVO ---
+def active_user_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Por favor, faça login para acessar esta página.', 'error')
+            return redirect(url_for('login'))
+        
+        # Verificar se o usuário ainda está ativo no banco
+        user_id = session['user_id']
+        ok, usuario = PegaUserPorId(user_id)
+        
+        if not ok or usuario.get('status_usuario') != 'ativo':
+            session.clear()
+            flash('Sua conta está inativa. Entre em contato com o administrador.', 'error')
+            return redirect(url_for('login'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 # --- FUNÇÃO CAPTCHA ---
 def gerar_captcha():
     operadores = ['+', '-', '*']
@@ -79,11 +99,13 @@ def gerar_captcha():
 
 # --- API PROXY GOOGLE BOOKS ---
 @app.route("/buscar-livros")
+@active_user_required
 def buscar_livros():
     user_type = session.get('user_type', 'aluno')
     return render_template('buscar_livros.html', user_type=user_type)
 
 @app.route("/api/buscar-livros")
+@active_user_required
 def api_buscar_livros():
     termo = request.args.get('q', '')
     
@@ -128,6 +150,7 @@ def index():
     return render_template('index.html')
 
 @app.route("/home")
+@active_user_required
 def home():
     ok, livros = ListarLivros()
     ok_usuarios, usuarios = ListarUsuarios()
@@ -179,6 +202,17 @@ def login():
 
         usuario = PegaUserPorEmail(email)
         
+        # MODIFICADO: Verificação adicional de segurança
+        if not usuario or usuario.get('status_usuario') != 'ativo':
+            num1, num2, operador, resposta = gerar_captcha()
+            return render_template(
+                "login.html",
+                error="Conta inativa. Entre em contato com o administrador.",
+                captcha_pergunta=f"Quanto é {num1} {operador} {num2}?",
+                captcha_correta=resposta,
+                email=email
+            )
+        
         session['user_id'] = usuario["id_usuario"]
         session['user_type'] = usuario["tipo_usuario"]
         session['user_name'] = usuario["nome_completo"]
@@ -199,10 +233,8 @@ def login():
 
 # --- PERFIL DO USUÁRIO ---
 @app.route("/perfil")
+@active_user_required
 def perfil():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
     user_id = session['user_id']
     ok, usuario = PegaUserPorId(user_id)
     
@@ -225,10 +257,8 @@ def perfil():
                          multas_pendentes=multas_pendentes if ok_multas else [])
 
 @app.route("/atualizar-perfil", methods=["POST"])
+@active_user_required
 def atualizar_perfil():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
     user_id = session['user_id']
     nome_completo = request.form['nome_completo']
     email = request.form['email']
@@ -263,6 +293,7 @@ def atualizar_perfil():
     return redirect(url_for('perfil'))
 
 @app.route("/generos")
+@active_user_required
 def generos():
     ok, generos_lista = ListarGeneros()
     if not ok:
@@ -272,6 +303,7 @@ def generos():
     return render_template('generos.html', generos=generos_lista, user_type=user_type)
 
 @app.route("/genero/<int:id_genero>")
+@active_user_required
 def livros_por_genero(id_genero):
     ok, todos_livros = ListarLivros()
     if not ok:
@@ -290,11 +322,13 @@ def livros_por_genero(id_genero):
                           user_type=user_type)
 
 @app.route("/sobre")
+@active_user_required
 def sobre():
     user_type = session.get('user_type', 'aluno')
     return render_template('sobre.html', user_type=user_type)
 
 @app.route("/contato")
+@active_user_required
 def contato():
     user_type = session.get('user_type', 'aluno')
     return render_template('contato.html', user_type=user_type)
@@ -309,16 +343,19 @@ def register():
     return render_template('register.html')
 
 @app.route("/privacidade")
+@active_user_required
 def privacidade():
     user_type = session.get('user_type', 'aluno')
     return render_template('privacidade.html', user_type=user_type)
 
 @app.route("/termos")
+@active_user_required
 def termos():
     user_type = session.get('user_type', 'aluno')
     return render_template('termos.html', user_type=user_type)
 
 @app.route("/dashboard")
+@active_user_required
 @admin_required
 def dashboard():
     user_type = session.get('user_type')
@@ -327,6 +364,7 @@ def dashboard():
 
 # ---------------- CONFIGURAÇÕES ----------------
 @app.route("/configuracoes", methods=['GET', 'POST'])
+@active_user_required
 @admin_required
 def configuracoes():
     if request.method == 'POST':
@@ -403,6 +441,7 @@ def configuracoes():
 
 # ---------------- USUÁRIOS ----------------
 @app.route("/listaruser")
+@active_user_required
 @admin_required
 def listaruser():
     ok, usuarios = ListarUsuarios()
@@ -412,6 +451,7 @@ def listaruser():
     return render_template('usuarios/listaruser.html', usuarios=usuarios, user_type=user_type)
 
 @app.route("/editaruser/<int:id>")
+@active_user_required
 @admin_required
 def editaruser(id):
     ok, usuario = PegaUserPorId(id)
@@ -421,6 +461,7 @@ def editaruser(id):
     return render_template('usuarios/editaruser.html', usuario=usuario, user_type=user_type)
 
 @app.route("/update_user/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def update_user(id):
     nome_completo = request.form['nome_completo']
@@ -433,6 +474,7 @@ def update_user(id):
     return redirect(url_for('listaruser'))
 
 @app.route("/excluiruser/<int:id>")
+@active_user_required
 @admin_required
 def excluiruser(id):
     ok, usuario = PegaUserPorId(id)
@@ -442,6 +484,7 @@ def excluiruser(id):
     return render_template('usuarios/excluiruser.html', usuario=usuario, user_type=user_type)
 
 @app.route("/delete_user/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def delete_user(id):
     ok, message = DeletarUsuario(id)
@@ -451,6 +494,7 @@ def delete_user(id):
 
 # ---------------- EDITORAS ----------------
 @app.route("/listareditoras")
+@active_user_required
 @admin_required
 def listareditoras():
     ok, editoras = ListarEditoras()
@@ -460,6 +504,7 @@ def listareditoras():
     return render_template('editoras/listareditoras.html', editoras=editoras, user_type=user_type)
 
 @app.route("/cadastrareditora", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def cadastrareditora():
     if request.method == "POST":
@@ -488,6 +533,7 @@ def cadastrareditora():
     return render_template('editoras/cadastrareditora.html', user_type=user_type)
 
 @app.route("/editareditora/<int:id>", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def editareditora(id):
     if request.method == "POST":
@@ -525,6 +571,7 @@ def editareditora(id):
     return render_template('editoras/editareditora.html', editora=editora, user_type=user_type)
 
 @app.route("/update_editora/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def update_editora(id):
     nome = request.form['nome'].strip()
@@ -542,6 +589,7 @@ def update_editora(id):
     return redirect(url_for('listareditoras'))
 
 @app.route("/excluireditora/<int:id>")
+@active_user_required
 @admin_required
 def excluireditora(id):
     ok, editora = PegaEditoraPorId(id)
@@ -552,6 +600,7 @@ def excluireditora(id):
     return render_template('editoras/excluireditora.html', editora=editora, user_type=user_type)
 
 @app.route("/delete_editora/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def delete_editora(id):
     ok, message = DeletarEditora(id)
@@ -562,6 +611,7 @@ def delete_editora(id):
 
 # ---------------- LIVROS ----------------
 @app.route("/listarlivro")
+@active_user_required
 @admin_required
 def listarlivros():
     ok, livros = ListarLivros()
@@ -571,6 +621,7 @@ def listarlivros():
     return render_template('livros/listarlivro.html', livros=livros, user_type=user_type)
 
 @app.route("/cadastrarlivro", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def cadastrarlivro():
     if request.method == 'POST':
@@ -614,6 +665,7 @@ def cadastrarlivro():
     return render_template_with_editoras_categorias('livros/cadastrarlivro.html')
 
 @app.route("/editarlivro/<int:id>", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def editarlivro(id):
     if request.method == 'POST':
@@ -666,6 +718,7 @@ def editarlivro(id):
     return render_template_with_editoras_categorias('livros/editarlivro.html', livro=livro, user_type=user_type)
 
 @app.route("/update_livro/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def update_livro(id):
     titulo = request.form['titulo'].strip()
@@ -684,6 +737,7 @@ def update_livro(id):
     return redirect(url_for('listarlivros'))
 
 @app.route("/excluirlivro/<int:id>", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def excluirlivro(id):
     if request.method == 'POST':
@@ -700,6 +754,7 @@ def excluirlivro(id):
     return render_template('livros/excluirlivro.html', livro=livro, user_type=user_type)
 
 @app.route("/delete_livro/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def delete_livro(id):
     ok, message = DeletarLivro(id)
@@ -709,6 +764,7 @@ def delete_livro(id):
 
 # ---------------- GÊNEROS ----------------
 @app.route("/listargeneros")
+@active_user_required
 @admin_required
 def listargeneros():
     ok, generos = ListarGeneros()
@@ -718,6 +774,7 @@ def listargeneros():
     return render_template('generos/listargeneros.html', generos=generos, user_type=user_type)
 
 @app.route("/cadastrargenero", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def cadastrargenero():
     if request.method == "POST":
@@ -743,6 +800,7 @@ def cadastrargenero():
     return render_template('generos/cadastrargenero.html', user_type=user_type)
 
 @app.route("/editargenero/<int:id>", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def editargenero(id):
     if request.method == "POST":
@@ -778,6 +836,7 @@ def editargenero(id):
     return render_template('generos/editargenero.html', genero=genero, user_type=user_type)
 
 @app.route("/update_genero/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def update_genero(id):
     nome_genero = request.form['nome_genero'].strip()
@@ -793,6 +852,7 @@ def update_genero(id):
     return redirect(url_for('listargeneros'))
 
 @app.route("/excluirgenero/<int:id>")
+@active_user_required
 @admin_required
 def excluirgenero(id):
     ok, genero = PegaGeneroPorId(id)
@@ -803,6 +863,7 @@ def excluirgenero(id):
     return render_template('generos/excluirgenero.html', genero=genero, user_type=user_type)
 
 @app.route("/delete_genero/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def delete_genero(id):
     ok, message = DeletarGenero(id)
@@ -813,6 +874,7 @@ def delete_genero(id):
 
 # ---------------- EMPRÉSTIMOS ----------------
 @app.route("/listaremprestimos")
+@active_user_required
 @admin_required
 def listaremprestimos():
     ok, emprestimos = ListarEmprestimos()
@@ -824,6 +886,7 @@ def listaremprestimos():
     return render_template('emprestimos/listaremprestimos.html', emprestimos=emprestimos, user_type=user_type)
 
 @app.route("/emprestar", methods=['GET', 'POST'])
+@active_user_required
 @admin_required
 def emprestar():
     if request.method == 'POST':
@@ -858,6 +921,7 @@ def emprestar():
                          user_type=user_type)
 
 @app.route("/devolverlivro/<int:id>", methods=['GET', 'POST'])
+@active_user_required
 @admin_required
 def devolverlivro(id):
     if request.method == 'POST':
@@ -877,6 +941,7 @@ def devolverlivro(id):
     return render_template('emprestimos/devolver.html', emprestimo=emprestimo, user_type=user_type)
 
 @app.route("/devolver_emprestimo/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def devolver_emprestimo(id):
     ok, message = DevolverLivro(id)
@@ -887,6 +952,7 @@ def devolver_emprestimo(id):
     return redirect(url_for('listaremprestimos'))
 
 @app.route("/renovar/<int:id>", methods=['GET', 'POST'])
+@active_user_required
 @admin_required
 def renovar(id):
     if request.method == 'POST':
@@ -906,6 +972,7 @@ def renovar(id):
     return render_template('emprestimos/renovar.html', emprestimo=emprestimo, user_type=user_type)
 
 @app.route("/update_emprestimo/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def update_emprestimo(id):
     ok, message = RenovarEmprestimo(id)
@@ -916,6 +983,7 @@ def update_emprestimo(id):
     return redirect(url_for('listaremprestimos'))
 
 @app.route("/listaratrasados")
+@active_user_required
 @admin_required
 def listaratrasados():
     ok, emprestimos = ListarAtrasados()
@@ -928,6 +996,7 @@ def listaratrasados():
 
 # ---------------- MULTAS ----------------
 @app.route("/listarmultas")
+@active_user_required
 @admin_required
 def listarmultas():
     ok, multas = ListarMultas()
@@ -939,6 +1008,7 @@ def listarmultas():
     return render_template('multas/listarmultas.html', multas=multas, user_type=user_type)
 
 @app.route("/removermulta/<int:id>", methods=["GET", "POST"])
+@active_user_required
 @admin_required
 def removermulta(id):
     if request.method == 'POST':
@@ -958,6 +1028,7 @@ def removermulta(id):
     return render_template('multas/removermulta.html', multa=multa, user_type=user_type)
 
 @app.route("/quitarmulta/<int:id>", methods=["POST"])
+@active_user_required
 @admin_required
 def quitarmulta(id):
     ok, message = QuitarMulta(id)
