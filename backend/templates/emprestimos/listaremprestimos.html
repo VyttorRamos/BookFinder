@@ -6,136 +6,6 @@
     <title>Listar Empréstimos - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <style>
-        /* --- REUTILIZANDO O CSS DA HOME PARA CONSISTÊNCIA --- */
-        :root {
-            --primary: #f59e0b;
-            --primary-dark: #d97706;
-            --secondary: #1e293b;
-            --text-main: #334155;
-            --text-light: #64748b;
-            --bg-light: #f8fafc;
-            --white: #ffffff;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-main);
-            background-color: var(--bg-light);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        a { text-decoration: none; color: inherit; transition: color 0.2s; }
-
-        /* --- HEADER --- */
-        .app-header {
-            background-color: var(--white);
-            border-bottom: 1px solid #e2e8f0;
-            height: 80px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex; align-items: center; gap: 10px;
-            font-family: Georgia, serif; font-size: 1.4rem; font-weight: bold; color: var(--secondary);
-        }
-        .logo-icon {
-            background-color: var(--primary); color: white; padding: 6px; border-radius: 8px; display: flex;
-        }
-        .icon { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
-
-        .main-nav { display: flex; gap: 25px; align-items: center; margin-left: auto; margin-right: 30px; }
-        .nav-link { font-weight: 700; font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
-        .nav-link:hover { color: var(--primary); }
-        .btn-logout { color: var(--danger); font-weight: 700; font-size: 0.85rem; border: 1px solid #fee2e2; padding: 8px 20px; border-radius: 50px; }
-        .btn-logout:hover { background-color: var(--danger); color: white; }
-        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; }
-
-        /* --- TABELA E CONTEÚDO --- */
-        main { padding: 40px 20px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
-        
-        h1 { font-family: Georgia, serif; font-size: 2.2rem; color: var(--secondary); margin-bottom: 10px; }
-        main > p { color: var(--text-light); margin-bottom: 30px; }
-
-        .table-container {
-            background-color: var(--white);
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid #e2e8f0;
-            overflow-x: auto;
-        }
-
-        table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        
-        th {
-            background-color: #f8fafc;
-            color: var(--secondary);
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: left;
-        }
-
-        td {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 0.9rem;
-            vertical-align: middle;
-        }
-
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background-color: #f8fafc; }
-
-        /* Badges de Status */
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
-        .status-ativo { background-color: #dbeafe; color: #1e40af; }
-        .status-devolvido { background-color: #dcfce7; color: #166534; }
-        .status-atrasado { background-color: #fee2e2; color: #991b1b; }
-
-        /* Botões de Ação */
-        .action-btn { padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin-right: 5px; display: inline-block; }
-        .btn-renovar { background-color: var(--primary); color: white; }
-        .btn-devolver { background-color: var(--secondary); color: white; }
-        .btn-renovar:hover, .btn-devolver:hover { opacity: 0.9; }
-
-        /* Flash Messages */
-        .flash-message { padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        
-        .no-data { text-align: center; padding: 40px; color: var(--text-light); }
-        .btn-create { background-color: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: inline-block; margin-top: 10px;}
-
-        @media (max-width: 900px) {
-            .main-nav { display: none; }
-            .mobile-menu-btn { display: block; }
-        }
-    </style>
 </head>
 <body>
     <!-- HEADER -->
@@ -179,51 +49,81 @@
         <h1>Empréstimos Ativos</h1>
         <p>Gerencie os empréstimos registrados no sistema.</p>
         
+        <!-- Barra de Busca -->
+        <div class="search-section">
+            <form method="GET" action="{{ url_for('listaremprestimos') }}" class="search-form">
+                <input type="text" 
+                       name="busca" 
+                       class="search-input" 
+                       placeholder="Buscar por nome do aluno, título do livro ou email..."
+                       value="{{ termo_busca or '' }}">
+                <button type="submit" class="search-btn">Buscar</button>
+                {% if termo_busca %}
+                    <a href="{{ url_for('listaremprestimos') }}" class="clear-btn">Limpar</a>
+                {% endif %}
+            </form>
+            {% if termo_busca %}
+                <div class="search-info">
+                    Buscando por: "<strong>{{ termo_busca }}</strong>"
+                </div>
+            {% endif %}
+        </div>
+
         <div class="table-container">
             {% if emprestimos %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Livro</th>
-                        <th>Usuário</th>
-                        <th>Data Empréstimo</th>
-                        <th>Devolução Prevista</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for emprestimo in emprestimos %}
-                    <tr>
-                        <td>#{{ emprestimo.id_emprestimo }}</td>
-                        <td><strong>{{ emprestimo.titulo }}</strong></td>
-                        <td>{{ emprestimo.nome_completo }}</td>
-                        <!-- CORREÇÃO DAS DATAS: dt_emprestimo e dt_devolucao_prevista -->
-                        <td>{{ emprestimo.dt_emprestimo.strftime('%d/%m/%Y') if emprestimo.dt_emprestimo else '-' }}</td>
-                        <td>{{ emprestimo.dt_devolucao_prevista.strftime('%d/%m/%Y') if emprestimo.dt_devolucao_prevista else '-' }}</td>
-                        <td>
-                            <span class="status-badge status-{{ emprestimo.status }}">
-                                {{ emprestimo.status|title }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if emprestimo.status == 'ativo' or emprestimo.status == 'atrasado' %}
-                            <a href="{{ url_for('renovar', id=emprestimo.id_emprestimo) }}" class="action-btn btn-renovar">Renovar</a>
-                            <a href="{{ url_for('devolverlivro', id=emprestimo.id_emprestimo) }}" class="action-btn btn-devolver">Devolver</a>
-                            {% else %}
-                            <span style="color: #94a3b8; font-size: 0.85rem;">Finalizado</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                {% if termo_busca %}
+                    <div class="results-count">
+                        {{ emprestimos|length }} empréstimo(s) encontrado(s)
+                    </div>
+                {% endif %}
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Livro</th>
+                            <th>Usuário</th>
+                            <th>Data Empréstimo</th>
+                            <th>Devolução Prevista</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emprestimo in emprestimos %}
+                        <tr>
+                            <td>#{{ emprestimo.id_emprestimo }}</td>
+                            <td><strong>{{ emprestimo.titulo }}</strong></td>
+                            <td>{{ emprestimo.nome_completo }}</td>
+                            <td>{{ emprestimo.dt_emprestimo.strftime('%d/%m/%Y') if emprestimo.dt_emprestimo else '-' }}</td>
+                            <td>{{ emprestimo.dt_prevista_devolucao.strftime('%d/%m/%Y') if emprestimo.dt_prevista_devolucao else '-' }}</td>
+                            <td>
+                                <span class="status-badge status-{{ emprestimo.status }}">
+                                    {{ emprestimo.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if emprestimo.status == 'ativo' or emprestimo.status == 'atrasado' %}
+                                <a href="{{ url_for('renovar', id=emprestimo.id_emprestimo) }}" class="action-btn btn-renovar">Renovar</a>
+                                <a href="{{ url_for('devolverlivro', id=emprestimo.id_emprestimo) }}" class="action-btn btn-devolver">Devolver</a>
+                                {% else %}
+                                <span style="color: #94a3b8; font-size: 0.85rem;">Finalizado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% else %}
-            <div class="no-data">
-                <p>Nenhum empréstimo encontrado.</p>
-                <a href="{{ url_for('emprestar') }}" class="btn-create">Realizar Novo Empréstimo</a>
-            </div>
+                <div class="no-data">
+                    {% if termo_busca %}
+                        <p>Nenhum empréstimo encontrado para "{{ termo_busca }}".</p>
+                        <a href="{{ url_for('listaremprestimos') }}" class="btn-create">Ver Todos os Empréstimos</a>
+                    {% else %}
+                        <p>Nenhum empréstimo ativo encontrado.</p>
+                        <a href="{{ url_for('emprestar') }}" class="btn-create">Realizar Novo Empréstimo</a>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
     </main>

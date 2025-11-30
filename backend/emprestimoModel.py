@@ -18,7 +18,6 @@ def ObterConfiguracoesEmprestimo():
         }
     
     config_dict = {}
-    # Configurações padrão caso alguma chave não exista
     default_values = {
         'limite_emprestimos': 3,
         'prazo_aluno': 15,
@@ -52,7 +51,7 @@ def ListarEmprestimos():
                 e.dt_emprestimo,
                 e.dt_prevista_devolucao,
                 e.dt_devolucao,
-                e.status_emprestimo,
+                e.status_emprestimo as status,
                 l.id_livro,
                 c.cod_interno,
                 c.id_copia,
@@ -61,11 +60,20 @@ def ListarEmprestimos():
             JOIN copias c ON e.id_copia = c.id_copia
             JOIN livros l ON c.id_livro = l.id_livro
             JOIN usuarios u ON e.id_usuario = u.id_usuario
-            WHERE e.status_emprestimo = 'ativo'
+            WHERE e.status_emprestimo IN ('ativo', 'atrasado')
             ORDER BY e.dt_emprestimo DESC
         """
         cursor.execute(sql)
         emprestimos = cursor.fetchall()
+        
+        # Atualizar status para atrasado se necessário
+        hoje = datetime.now().date()
+        for emprestimo in emprestimos:
+            if (emprestimo['status'] == 'ativo' and 
+                emprestimo['dt_prevista_devolucao'] and 
+                emprestimo['dt_prevista_devolucao'].date() < hoje):
+                emprestimo['status'] = 'atrasado'
+                
         return True, emprestimos
     except mysql.connector.Error as err:
         return False, f"Erro ao listar empréstimos: {err}"
@@ -81,7 +89,6 @@ def BuscarLivrosDisponiveis(termo_busca=None):
         cursor = conn.cursor(dictionary=True)
         
         if termo_busca:
-            # Busca por título ou ISBN
             sql = """
                 SELECT l.*, e.nome as editora_nome, c.nome as categoria_nome 
                 FROM livros l 
@@ -94,7 +101,6 @@ def BuscarLivrosDisponiveis(termo_busca=None):
             """
             cursor.execute(sql, (f'%{termo_busca}%', f'%{termo_busca}%'))
         else:
-            # Todos os livros disponíveis
             sql = """
                 SELECT l.*, e.nome as editora_nome, c.nome as categoria_nome 
                 FROM livros l 
@@ -183,8 +189,8 @@ def RealizarEmprestimo(id_livro, id_usuario):
         
         cursor.execute("""
             INSERT INTO emprestimos 
-            (id_usuario, id_copia, dt_emprestimo, dt_prevista_devolucao, status_emprestimo) 
-            VALUES (%s, %s, %s, %s, 'ativo')
+            (id_usuario, id_copia, dt_emprestimo, dt_prevista_devolucao, status_emprestimo, renovado) 
+            VALUES (%s, %s, %s, %s, 'ativo', 0)
         """, (id_usuario, id_copia, dt_emprestimo, dt_prevista_devolucao))
         
         # 6. Atualizar o status da cópia para emprestado
@@ -216,7 +222,9 @@ def PegaEmprestimoPorId(id_emprestimo):
         conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
         sql = """
-            SELECT e.*, l.titulo, u.nome_completo, c.cod_interno, l.id_livro, u.tipo_usuario
+            SELECT e.*, l.titulo, u.nome_completo, c.cod_interno, l.id_livro, u.tipo_usuario,
+                   e.dt_emprestimo as data_emprestimo,
+                   e.dt_prevista_devolucao as dt_devolucao_prevista
             FROM emprestimos e 
             JOIN copias c ON e.id_copia = c.id_copia
             JOIN livros l ON c.id_livro = l.id_livro
@@ -244,22 +252,30 @@ def RenovarEmprestimo(id_emprestimo):
         config = ObterConfiguracoesEmprestimo()
         
         # Buscar dados do empréstimo
-        cursor.execute("SELECT * FROM emprestimos WHERE id_emprestimo = %s", (id_emprestimo,))
+        cursor.execute("""
+            SELECT e.*, u.tipo_usuario 
+            FROM emprestimos e
+            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            WHERE e.id_emprestimo = %s
+        """, (id_emprestimo,))
         emprestimo = cursor.fetchone()
         
         if not emprestimo:
             return False, "Empréstimo não encontrado."
             
+        if emprestimo['status_emprestimo'] != 'ativo':
+            return False, "Apenas empréstimos ativos podem ser renovados."
+            
         # Verificar se já foi renovado antes
-        if emprestimo['renovado']:
-            return False, f"Este empréstimo já foi renovado anteriormente (máximo: {config['limite_renovacoes']} renovação)."
+        if emprestimo['renovado'] >= config['limite_renovacoes']:
+            return False, f"Este empréstimo já atingiu o limite máximo de {config['limite_renovacoes']} renovações."
         
         # Calcular nova data de devolução
         nova_data_prevista = emprestimo['dt_prevista_devolucao'] + timedelta(days=config['dias_renovacao'])
         
         cursor.execute("""
             UPDATE emprestimos 
-            SET dt_prevista_devolucao = %s, renovado = 1 
+            SET dt_prevista_devolucao = %s, renovado = renovado + 1 
             WHERE id_emprestimo = %s
         """, (nova_data_prevista, id_emprestimo))
         
@@ -267,6 +283,7 @@ def RenovarEmprestimo(id_emprestimo):
         return True, f"Empréstimo renovado com sucesso! Nova data de devolução: {nova_data_prevista.strftime('%d/%m/%Y')}"
         
     except mysql.connector.Error as err:
+        conn.rollback()
         return False, f"Erro ao renovar empréstimo: {err}"
     finally:
         if conn and conn.is_connected():
@@ -422,6 +439,54 @@ def VerificarAtrasosUsuario(id_usuario):
         return True, resultado['total_atrasos'] > 0
     except Exception as e:
         return False, f"Erro ao verificar atrasos: {str(e)}"
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def ListarEmprestimosComBusca(termo_busca):
+    try:
+        conn = DBConexao()
+        cursor = conn.cursor(dictionary=True)
+        
+        sql = """
+            SELECT 
+                e.id_emprestimo,
+                l.titulo,
+                u.nome_completo,
+                u.id_usuario,
+                e.dt_emprestimo,
+                e.dt_prevista_devolucao,
+                e.dt_devolucao,
+                e.status_emprestimo as status,
+                l.id_livro,
+                c.cod_interno,
+                c.id_copia,
+                e.renovado
+            FROM emprestimos e
+            JOIN copias c ON e.id_copia = c.id_copia
+            JOIN livros l ON c.id_livro = l.id_livro
+            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            WHERE e.status_emprestimo IN ('ativo', 'atrasado')
+            AND (u.nome_completo LIKE %s OR l.titulo LIKE %s OR u.email LIKE %s)
+            ORDER BY e.dt_emprestimo DESC
+        """
+        
+        termo_like = f'%{termo_busca}%'
+        cursor.execute(sql, (termo_like, termo_like, termo_like))
+        emprestimos = cursor.fetchall()
+        
+        # Atualizar status para atrasado se necessário
+        hoje = datetime.now().date()
+        for emprestimo in emprestimos:
+            if (emprestimo['status'] == 'ativo' and 
+                emprestimo['dt_prevista_devolucao'] and 
+                emprestimo['dt_prevista_devolucao'].date() < hoje):
+                emprestimo['status'] = 'atrasado'
+                
+        return True, emprestimos
+    except mysql.connector.Error as err:
+        return False, f"Erro ao listar empréstimos: {err}"
     finally:
         if conn and conn.is_connected():
             cursor.close()

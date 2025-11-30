@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario, AtualizaHashSenha)
 from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarLivro, DeletarLivro, VerificarDisponibilidade)
 from generoModel import (ListarGeneros, CadastrarGenero, PegaGeneroPorId, AtualizarGenero, DeletarGenero)
-from emprestimoModel import (BuscarLivrosDisponiveis, ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados, ListarEmprestimosPorUsuario)
+from emprestimoModel import (BuscarLivrosDisponiveis, ListarEmprestimos, ListarEmprestimosComBusca, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados, ListarEmprestimosPorUsuario)
 from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta, ListarMultasPorUsuario, QuitarMulta)
 from editoraModel import (ListarEditoras, CadastrarEditora, PegaEditoraPorId, AtualizarEditora, DeletarEditora)
 from configModel import (BuscarConfiguracoes, AtualizarConfiguracoesEmLote, BuscarConfiguracaoPorChave)
@@ -943,17 +943,27 @@ def delete_genero(id):
     return redirect(url_for('listargeneros'))
 
 # ---------------- EMPRÉSTIMOS ----------------
-@app.route("/listaremprestimos")
+@app.route("/listaremprestimos", methods=['GET'])
 @active_user_required
 @admin_required
 def listaremprestimos():
-    ok, emprestimos = ListarEmprestimos()
+    termo_busca = request.args.get('busca', '')
+    
+    # Use a função de busca se houver termo, senão use a função normal
+    if termo_busca:
+        ok, emprestimos = ListarEmprestimosComBusca(termo_busca)
+    else:
+        ok, emprestimos = ListarEmprestimos()
+    
     if not ok:
         flash('Erro ao carregar empréstimos', 'error')
         emprestimos = []
     
     user_type = session.get('user_type')
-    return render_template('emprestimos/listaremprestimos.html', emprestimos=emprestimos, user_type=user_type)
+    return render_template('emprestimos/listaremprestimos.html', 
+                         emprestimos=emprestimos, 
+                         user_type=user_type,
+                         termo_busca=termo_busca)
 
 @app.route("/emprestar", methods=['GET', 'POST'])
 @active_user_required
@@ -972,15 +982,19 @@ def emprestar():
         return redirect(url_for('listaremprestimos'))
     
     # Buscar livros disponíveis
-    ok_livros, livros = BuscarLivrosDisponiveis()  # Usando a nova função
+    ok_livros, livros = BuscarLivrosDisponiveis()
     if not ok_livros:
         livros_disponiveis = []
+        flash('Erro ao carregar livros disponíveis', 'error')
     else:
         livros_disponiveis = livros
+        if not livros_disponiveis:
+            flash('Não há livros disponíveis para empréstimo no momento', 'warning')
     
     ok_usuarios, usuarios = ListarUsuarios()
     if not ok_usuarios:
         usuarios = []
+        flash('Erro ao carregar usuários', 'error')
     
     user_type = session.get('user_type')
     return render_template('emprestimos/emprestar.html', 

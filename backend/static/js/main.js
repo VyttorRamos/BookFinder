@@ -27,7 +27,7 @@ function log(msg) {
 
 function MostrarMensagem(mensagem, isError = false) {
     let el = document.querySelector('.msg-box');
-    
+
     if (!el) {
         el = document.createElement('div');
         el.className = 'msg-box';
@@ -87,7 +87,7 @@ function configurarAuthInteligente() {
         const temDescricao = form.querySelector('input[name="descricao"]') || form.querySelector('textarea[name="descricao"]');
 
         // Lógica de Detecção:
-        
+
         // 1. É Registro de Usuário? (Tem Nome + Email + Senha)
         if (temNome && temEmail && temSenha) {
             // Remove listener padrão para evitar envio tradicional se quisermos AJAX
@@ -96,7 +96,7 @@ function configurarAuthInteligente() {
             form.parentNode.replaceChild(novoForm, form);
             novoForm.addEventListener('submit', Registro);
             log('Formulário identificado: Registro de Usuário');
-            
+
             // Reatribuir toggle de senha no novo form
             configurarSenhaToggle();
             return;
@@ -135,7 +135,7 @@ async function Registro(e) {
         MostrarMensagem('Preencher nome, email e senha!', true);
         return;
     }
-    
+
     // Verifica confirmação apenas se o campo existir
     if (senha_confirm && senha !== senha_confirm) {
         MostrarMensagem('As senhas não são iguais.', true);
@@ -226,18 +226,18 @@ async function Login(e) {
 function configurarBusca() {
     const searchInput = document.getElementById('search-input');
     const searchForm = document.getElementById('search-form');
-    
+
     if (searchInput) {
         const bookCards = document.querySelectorAll('.book-card');
-        
-        searchInput.addEventListener('input', function() {
+
+        searchInput.addEventListener('input', function () {
             const term = this.value.toLowerCase().trim();
-            
+
             bookCards.forEach(card => {
                 const titulo = card.getAttribute('data-titulo') || '';
                 const categoria = card.getAttribute('data-categoria') || '';
                 const autor = card.getAttribute('data-autor') || '';
-                
+
                 const matches = titulo.includes(term) || categoria.includes(term) || autor.includes(term);
                 card.style.display = matches ? 'flex' : 'none';
             });
@@ -245,7 +245,7 @@ function configurarBusca() {
     }
 
     if (searchForm && document.querySelector('.book-grid')) {
-        searchForm.addEventListener('submit', function(e) {
+        searchForm.addEventListener('submit', function (e) {
             e.preventDefault();
         });
     }
@@ -262,8 +262,8 @@ function configurarCaptcha() {
     const form = captchaInput.closest('form');
     if (form) {
         if (form.getAttribute('data-captcha-listener') === 'true') return;
-        
-        form.addEventListener('submit', function(e) {
+
+        form.addEventListener('submit', function (e) {
             if (!captchaInput.value.trim()) {
                 e.preventDefault();
                 MostrarMensagem('Por favor, responda a pergunta do CAPTCHA.', true);
@@ -281,14 +281,14 @@ function configurarCaptcha() {
 function initMobileMenu() {
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const mainNav = document.querySelector('.main-nav');
-    
+
     if (mobileMenuBtn && mainNav) {
         const newBtn = mobileMenuBtn.cloneNode(true);
         mobileMenuBtn.parentNode.replaceChild(newBtn, mobileMenuBtn);
 
-        newBtn.addEventListener('click', function() {
+        newBtn.addEventListener('click', function () {
             if (mainNav.style.display === 'flex') {
-                mainNav.style.display = ''; 
+                mainNav.style.display = '';
                 mainNav.classList.remove('active');
             } else {
                 mainNav.style.display = 'flex';
@@ -303,10 +303,10 @@ function initMobileMenu() {
                 mainNav.classList.add('active');
             }
         });
-        
+
         mainNav.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
-                mainNav.style.display = ''; 
+                mainNav.style.display = '';
             });
         });
     }
@@ -349,7 +349,7 @@ function configurarNavegacaoAdmin() {
    MODAIS
    ========================================================================== */
 
-window.abrirModalEmprestimo = function(livroId, livroTitulo) {
+window.abrirModalEmprestimo = function (livroId, livroTitulo) {
     const modal = document.getElementById('modalEmprestimo');
     const idInput = document.getElementById('livroId');
     const infoText = document.getElementById('livroInfo');
@@ -361,7 +361,7 @@ window.abrirModalEmprestimo = function(livroId, livroTitulo) {
     }
 };
 
-window.fecharModal = function() {
+window.fecharModal = function () {
     const modal = document.getElementById('modalEmprestimo');
     if (modal) {
         modal.style.display = 'none';
@@ -370,7 +370,7 @@ window.fecharModal = function() {
     }
 };
 
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modal = document.getElementById('modalEmprestimo');
     if (modal && event.target === modal) {
         window.fecharModal();
@@ -419,60 +419,89 @@ if (formEmprestimo) {
 }
 
 //BUSCA EMPRESTAR
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('bookSearch');
-            const bookSelect = document.getElementById('id_livro');
-            const originalOptions = Array.from(bookSelect.options);
-            
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                const firstOption = bookSelect.options[0]; // Manter a opção "Selecione um livro..."
-                
-                // Limpar select, mantendo apenas a primeira opção
-                bookSelect.innerHTML = '';
-                bookSelect.appendChild(firstOption);
-                
-                if (searchTerm === '') {
-                    // Se não há termo de busca, mostrar todas as opções
-                    originalOptions.forEach(option => {
-                        if (option.value !== '') {
-                            bookSelect.appendChild(option.cloneNode(true));
-                        }
-                    });
-                    return;
-                }
-                
-                // Filtrar opções
-                let hasResults = false;
-                originalOptions.forEach(option => {
-                    if (option.value === '') return; // Pular a primeira opção
-                    
-                    const titulo = option.getAttribute('data-titulo') || '';
-                    const isbn = option.getAttribute('data-isbn') || '';
-                    const editora = option.getAttribute('data-editora') || '';
-                    const categoria = option.getAttribute('data-categoria') || '';
-                    
-                    // Buscar em título, ISBN, editora e categoria
-                    if (titulo.includes(searchTerm) || 
-                        isbn.includes(searchTerm) || 
-                        editora.includes(searchTerm) || 
-                        categoria.includes(searchTerm)) {
-                        bookSelect.appendChild(option.cloneNode(true));
-                        hasResults = true;
-                    }
-                });
-                
-                // Mostrar mensagem se não houver resultados
-                if (!hasResults) {
-                    const noResultsOption = document.createElement('option');
-                    noResultsOption.value = '';
-                    noResultsOption.disabled = true;
-                    noResultsOption.textContent = 'Nenhum livro encontrado para esta busca';
-                    noResultsOption.className = 'no-results';
-                    bookSelect.appendChild(noResultsOption);
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('bookSearch');
+    const bookSelect = document.getElementById('id_livro');
+    const originalOptions = Array.from(bookSelect.options);
+
+    searchInput.addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase().trim();
+        const firstOption = bookSelect.options[0]; // Manter a opção "Selecione um livro..."
+
+        // Limpar select, mantendo apenas a primeira opção
+        bookSelect.innerHTML = '';
+        bookSelect.appendChild(firstOption);
+
+        if (searchTerm === '') {
+            // Se não há termo de busca, mostrar todas as opções
+            originalOptions.forEach(option => {
+                if (option.value !== '') {
+                    bookSelect.appendChild(option.cloneNode(true));
                 }
             });
-            
-            // Focar no campo de busca quando a página carregar
-            searchInput.focus();
+            return;
+        }
+
+        // Filtrar opções
+        let hasResults = false;
+        originalOptions.forEach(option => {
+            if (option.value === '') return; // Pular a primeira opção
+
+            const titulo = option.getAttribute('data-titulo') || '';
+            const isbn = option.getAttribute('data-isbn') || '';
+            const editora = option.getAttribute('data-editora') || '';
+            const categoria = option.getAttribute('data-categoria') || '';
+
+            // Buscar em título, ISBN, editora e categoria
+            if (titulo.includes(searchTerm) ||
+                isbn.includes(searchTerm) ||
+                editora.includes(searchTerm) ||
+                categoria.includes(searchTerm)) {
+                bookSelect.appendChild(option.cloneNode(true));
+                hasResults = true;
+            }
         });
+
+        // Mostrar mensagem se não houver resultados
+        if (!hasResults) {
+            const noResultsOption = document.createElement('option');
+            noResultsOption.value = '';
+            noResultsOption.disabled = true;
+            noResultsOption.textContent = 'Nenhum livro encontrado para esta busca';
+            noResultsOption.className = 'no-results';
+            bookSelect.appendChild(noResultsOption);
+        }
+    });
+
+    // Focar no campo de busca quando a página carregar
+    searchInput.focus();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('.search-input');
+    const searchForm = document.querySelector('.search-form');
+    
+    // Foco automático no campo de busca
+    if (searchInput && !searchInput.value) {
+        searchInput.focus();
+    }
+    
+    // Busca em tempo real (opcional)
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            if (searchInput.value.length >= 3 || searchInput.value.length === 0) {
+                searchForm.submit();
+            }
+        }, 500);
+    });
+    
+    // Limpar busca com ESC
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            searchForm.submit();
+        }
+    });
+});
