@@ -50,22 +50,42 @@
             <form action="{{ url_for('emprestar') }}" method="POST" class="contact-form">
                 <div class="form-group">
                     <label for="id_livro">Livro</label>
-                    <select id="id_livro" name="id_livro" required>
+                    
+                    <!-- Barra de busca -->
+                    <div class="search-container">
+                        <input type="text" id="bookSearch" class="search-box" placeholder="Buscar livro por título ou ISBN...">
+                    </div>
+                    
+                    <select id="id_livro" name="id_livro" required size="8" style="height: auto;">
                         <option value="">Selecione um livro...</option>
                         {% for livro in livros %}
-                        <option value="{{ livro.id_livro }}">{{ livro.titulo }}</option>
+                        <option value="{{ livro.id_livro }}" 
+                                data-titulo="{{ livro.titulo|lower }}" 
+                                data-isbn="{{ livro.isbn|default('', true)|lower }}"
+                                data-editora="{{ livro.editora_nome|default('', true)|lower }}"
+                                data-categoria="{{ livro.categoria_nome|default('', true)|lower }}">
+                            <span class="book-title">{{ livro.titulo }}</span>
+                            <span class="book-details">
+                                {% if livro.isbn %}ISBN: {{ livro.isbn }} | {% endif %}
+                                {% if livro.editora_nome %}{{ livro.editora_nome }} | {% endif %}
+                                {% if livro.categoria_nome %}{{ livro.categoria_nome }}{% endif %}
+                            </span>
+                        </option>
                         {% endfor %}
                     </select>
+                    <small class="help-text">Use a barra de busca para filtrar por título, ISBN, editora ou categoria</small>
                 </div>
+                
                 <div class="form-group">
                     <label for="id_usuario">Usuário</label>
                     <select id="id_usuario" name="id_usuario" required>
                         <option value="">Selecione um usuário...</option>
                         {% for usuario in usuarios %}
-                        <option value="{{ usuario.id_usuario }}">{{ usuario.nome_completo }}</option>
+                        <option value="{{ usuario.id_usuario }}">{{ usuario.nome_completo }} ({{ usuario.email }})</option>
                         {% endfor %}
                     </select>
                 </div>
+                
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Realizar Empréstimo</button>
                     <a href="{{ url_for('listaremprestimos') }}" class="btn-secondary">Cancelar</a>
@@ -86,6 +106,6 @@
             </ul>
         </div>
     </footer>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

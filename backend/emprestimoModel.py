@@ -74,6 +74,47 @@ def ListarEmprestimos():
             cursor.close()
             conn.close()
 
+def BuscarLivrosDisponiveis(termo_busca=None):
+    """Busca livros disponíveis com opção de filtro por título ou ISBN"""
+    try:
+        conn = DBConexao()
+        cursor = conn.cursor(dictionary=True)
+        
+        if termo_busca:
+            # Busca por título ou ISBN
+            sql = """
+                SELECT l.*, e.nome as editora_nome, c.nome as categoria_nome 
+                FROM livros l 
+                LEFT JOIN editoras e ON l.id_editora = e.id_editora 
+                LEFT JOIN categorias c ON l.id_categoria = c.id_categoria 
+                WHERE l.status_livro = 'ativo'
+                AND (l.titulo LIKE %s OR l.isbn LIKE %s)
+                AND l.quantidade_disponivel > 0
+                ORDER BY l.titulo
+            """
+            cursor.execute(sql, (f'%{termo_busca}%', f'%{termo_busca}%'))
+        else:
+            # Todos os livros disponíveis
+            sql = """
+                SELECT l.*, e.nome as editora_nome, c.nome as categoria_nome 
+                FROM livros l 
+                LEFT JOIN editoras e ON l.id_editora = e.id_editora 
+                LEFT JOIN categorias c ON l.id_categoria = c.id_categoria 
+                WHERE l.status_livro = 'ativo'
+                AND l.quantidade_disponivel > 0
+                ORDER BY l.titulo
+            """
+            cursor.execute(sql)
+        
+        livros = cursor.fetchall()
+        return True, livros
+    except mysql.connector.Error as err:
+        return False, f"Erro ao buscar livros: {err}"
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
 def RealizarEmprestimo(id_livro, id_usuario):
     try:
         conn = DBConexao()

@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario, AtualizaHashSenha)
 from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarLivro, DeletarLivro, VerificarDisponibilidade)
 from generoModel import (ListarGeneros, CadastrarGenero, PegaGeneroPorId, AtualizarGenero, DeletarGenero)
-from emprestimoModel import (ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados, ListarEmprestimosPorUsuario)
+from emprestimoModel import (BuscarLivrosDisponiveis, ListarEmprestimos, RealizarEmprestimo, PegaEmprestimoPorId, RenovarEmprestimo, DevolverLivro, ListarAtrasados, ListarEmprestimosPorUsuario)
 from multaModel import (ListarMultas, PegaMultaPorId, RemoverMulta, ListarMultasPorUsuario, QuitarMulta)
 from editoraModel import (ListarEditoras, CadastrarEditora, PegaEditoraPorId, AtualizarEditora, DeletarEditora)
 from configModel import (BuscarConfiguracoes, AtualizarConfiguracoesEmLote, BuscarConfiguracaoPorChave)
@@ -972,13 +972,11 @@ def emprestar():
         return redirect(url_for('listaremprestimos'))
     
     # Buscar livros disponíveis
-    ok_livros, livros = ListarLivros()
-    livros_disponiveis = []
-    if ok_livros:
-        for livro in livros:
-            ok_disp, disponivel = VerificarDisponibilidade(livro['id_livro'])
-            if ok_disp and disponivel:
-                livros_disponiveis.append(livro)
+    ok_livros, livros = BuscarLivrosDisponiveis()  # Usando a nova função
+    if not ok_livros:
+        livros_disponiveis = []
+    else:
+        livros_disponiveis = livros
     
     ok_usuarios, usuarios = ListarUsuarios()
     if not ok_usuarios:
@@ -989,6 +987,22 @@ def emprestar():
                          livros=livros_disponiveis, 
                          usuarios=usuarios, 
                          user_type=user_type)
+
+@app.route("/api/buscar-livros-disponiveis")
+@active_user_required
+@admin_required
+def api_buscar_livros_disponiveis():
+    termo = request.args.get('q', '')
+    
+    if termo:
+        ok, livros = BuscarLivrosDisponiveis(termo)
+    else:
+        ok, livros = BuscarLivrosDisponiveis()
+    
+    if not ok:
+        return jsonify({"error": livros}), 500
+    
+    return jsonify({"livros": livros})
 
 @app.route("/devolverlivro/<int:id>", methods=['GET', 'POST'])
 @active_user_required

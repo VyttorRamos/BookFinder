@@ -417,3 +417,62 @@ if (formEmprestimo) {
         }
     });
 }
+
+//BUSCA EMPRESTAR
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('bookSearch');
+            const bookSelect = document.getElementById('id_livro');
+            const originalOptions = Array.from(bookSelect.options);
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                const firstOption = bookSelect.options[0]; // Manter a opção "Selecione um livro..."
+                
+                // Limpar select, mantendo apenas a primeira opção
+                bookSelect.innerHTML = '';
+                bookSelect.appendChild(firstOption);
+                
+                if (searchTerm === '') {
+                    // Se não há termo de busca, mostrar todas as opções
+                    originalOptions.forEach(option => {
+                        if (option.value !== '') {
+                            bookSelect.appendChild(option.cloneNode(true));
+                        }
+                    });
+                    return;
+                }
+                
+                // Filtrar opções
+                let hasResults = false;
+                originalOptions.forEach(option => {
+                    if (option.value === '') return; // Pular a primeira opção
+                    
+                    const titulo = option.getAttribute('data-titulo') || '';
+                    const isbn = option.getAttribute('data-isbn') || '';
+                    const editora = option.getAttribute('data-editora') || '';
+                    const categoria = option.getAttribute('data-categoria') || '';
+                    
+                    // Buscar em título, ISBN, editora e categoria
+                    if (titulo.includes(searchTerm) || 
+                        isbn.includes(searchTerm) || 
+                        editora.includes(searchTerm) || 
+                        categoria.includes(searchTerm)) {
+                        bookSelect.appendChild(option.cloneNode(true));
+                        hasResults = true;
+                    }
+                });
+                
+                // Mostrar mensagem se não houver resultados
+                if (!hasResults) {
+                    const noResultsOption = document.createElement('option');
+                    noResultsOption.value = '';
+                    noResultsOption.disabled = true;
+                    noResultsOption.textContent = 'Nenhum livro encontrado para esta busca';
+                    noResultsOption.className = 'no-results';
+                    bookSelect.appendChild(noResultsOption);
+                }
+            });
+            
+            // Focar no campo de busca quando a página carregar
+            searchInput.focus();
+        });
