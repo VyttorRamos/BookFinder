@@ -1,109 +1,147 @@
+/**
+ * main.js - Script principal do BookFinder
+ * Atualizado para corrigir conflitos de formulário (Editora/Categoria x Registro)
+ */
+
 const API_BASE = 'http://127.0.0.1:5000';
 
-
-
-
-function configurarBusca() {
-    const searchForm = document.getElementById('search-form');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const searchTerm = document.getElementById('search-input').value.trim();
-            if (searchTerm) {
-                // Redireciona para a página de resultados de busca
-                window.location.href = `/busca?q=${encodeURIComponent(searchTerm)}`;
-            }
-        });
-    }
-}
-
-// Função para configurar CAPTCHA
-function configurarCaptcha() {
-    const captchaForm = document.querySelector('form');
-    const captchaInput = document.getElementById('notrobo');
-
-    if (captchaForm && captchaInput) {
-        captchaForm.addEventListener('submit', function (e) {
-            if (!captchaInput.value.trim()) {
-                e.preventDefault();
-                MostrarMensagem('Por favor, responda a pergunta do CAPTCHA.', true);
-                captchaInput.focus();
-                return false;
-            }
-
-            // Verificação básica de números (opcional)
-            const resposta = captchaInput.value.trim();
-            if (!/^\d+$/.test(resposta)) {
-                e.preventDefault();
-                MostrarMensagem('A resposta deve conter apenas números.', true);
-                captchaInput.focus();
-                return false;
-            }
-        });
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    carregarHeader();
-    carregarFooter();
+    console.log('[BookFinder] App inicializado.');
+
+    initMobileMenu();
+    initFlashMessages();
     configurarBusca();
     configurarCaptcha();
+    configurarAuthInteligente(); // Nova função mais robusta
+    configurarSenhaToggle();
+    configurarNavegacaoAdmin();
 });
+
+/* ==========================================================================
+   FUNÇÕES AUXILIARES
+   ========================================================================== */
 
 function log(msg) {
     console.log('[BookFinder]', msg);
 }
 
 function MostrarMensagem(mensagem, isError = false) {
-    // Primeiro tenta encontrar uma mensagem existente
-    let el = document.querySelector('.msg');
-
-    // Se não existe, cria uma
+    let el = document.querySelector('.msg-box');
+    
     if (!el) {
         el = document.createElement('div');
-        el.className = 'msg';
-        document.querySelector('main').prepend(el);
+        el.className = 'msg-box';
+        const main = document.querySelector('main');
+        if (main) main.prepend(el);
     }
 
     el.textContent = mensagem;
     el.style.cssText = `
-        padding: 12px;
-        margin: 15px 0;
-        border-radius: 6px;
-        font-weight: bold;
+        padding: 15px;
+        margin: 20px auto;
+        max-width: 600px;
+        border-radius: 8px;
+        font-weight: 600;
         text-align: center;
-        background-color: ${isError ? '#f8d7da' : '#d1edff'};
-        color: ${isError ? '#721c24' : '#004085'};
-        border: 1px solid ${isError ? '#f5c6cb' : '#b8daff'};
+        background-color: ${isError ? '#fee2e2' : '#dcfce7'};
+        color: ${isError ? '#dc2626' : '#16a34a'};
+        border: 1px solid ${isError ? '#fecaca' : '#bbf7d0'};
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: opacity 0.3s ease;
     `;
 
-    // Remove a mensagem após 5 segundos
     setTimeout(() => {
         if (el && el.parentNode) {
-            el.parentNode.removeChild(el);
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 300);
         }
     }, 5000);
 }
 
+function initFlashMessages() {
+    const alerts = document.querySelectorAll('.alert, .flash-message');
+    if (alerts.length > 0) {
+        setTimeout(() => {
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+    }
+}
+
+/* ==========================================================================
+   AUTENTICAÇÃO INTELIGENTE
+   ========================================================================== */
+
+function configurarAuthInteligente() {
+    // Itera sobre TODOS os formulários da página para identificar qual é qual
+    const forms = document.querySelectorAll('form');
+
+    forms.forEach(form => {
+        // Verifica quais campos existem DENTRO deste formulário específico
+        const temNome = form.querySelector('input[name="nome_completo"]') || form.querySelector('#nome');
+        const temEmail = form.querySelector('input[name="email"]') || form.querySelector('#email');
+        const temSenha = form.querySelector('input[name="senha"]') || form.querySelector('#senha');
+        const temDescricao = form.querySelector('input[name="descricao"]') || form.querySelector('textarea[name="descricao"]');
+
+        // Lógica de Detecção:
+        
+        // 1. É Registro de Usuário? (Tem Nome + Email + Senha)
+        if (temNome && temEmail && temSenha) {
+            // Remove listener padrão para evitar envio tradicional se quisermos AJAX
+            // Mas aqui vamos clonar para garantir limpeza
+            const novoForm = form.cloneNode(true);
+            form.parentNode.replaceChild(novoForm, form);
+            novoForm.addEventListener('submit', Registro);
+            log('Formulário identificado: Registro de Usuário');
+            
+            // Reatribuir toggle de senha no novo form
+            configurarSenhaToggle();
+            return;
+        }
+
+        // 2. É Formulário de Categoria ou Editora? (Tem Nome mas NÃO tem Senha)
+        if (temNome && !temSenha) {
+            // Aqui podemos adicionar validação simples se for Categoria (Nome + Descrição)
+            // mas NÃO anexamos a função 'Registro' que pede senha.
+            // Deixamos o formulário seguir o fluxo normal do HTML/Flask.
+            log('Formulário identificado: Cadastro Geral (Editora/Categoria/Livro) - Fluxo padrão mantido.');
+            return;
+        }
+
+        // 3. É Login? (Tem Email + Senha, mas NÃO tem Nome)
+        if (temEmail && temSenha && !temNome) {
+            // Opcional: Se quiser login via AJAX, descomente:
+            // form.addEventListener('submit', Login);
+            log('Formulário identificado: Login - Fluxo padrão mantido.');
+        }
+    });
+}
+
 async function Registro(e) {
     e.preventDefault();
+    const form = e.target; // Pega o formulário que disparou o evento
 
-    const nome = document.getElementById('nome')?.value?.trim();
-    const tel = document.getElementById('tel')?.value?.trim();
-    const email = document.getElementById('email')?.value?.trim();
-    const senha = document.getElementById('senha')?.value;
-    const senha_confirm = document.getElementById('senha_confirm')?.value;
+    // Busca campos DENTRO do formulário disparador
+    const nome = form.querySelector('#nome')?.value?.trim() || form.querySelector('input[name="nome_completo"]')?.value?.trim();
+    const email = form.querySelector('#email')?.value?.trim() || form.querySelector('input[name="email"]')?.value?.trim();
+    const senha = form.querySelector('#senha')?.value;
+    const senha_confirm = form.querySelector('#senha_confirm')?.value;
+    const tel = form.querySelector('#tel')?.value?.trim() || "";
 
     if (!nome || !email || !senha) {
         MostrarMensagem('Preencher nome, email e senha!', true);
         return;
     }
-    if (senha !== senha_confirm) {
+    
+    // Verifica confirmação apenas se o campo existir
+    if (senha_confirm && senha !== senha_confirm) {
         MostrarMensagem('As senhas não são iguais.', true);
         return;
     }
 
-    // Validação de email básica
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         MostrarMensagem('Por favor, insira um email válido.', true);
@@ -131,24 +169,19 @@ async function Registro(e) {
         }
     } catch (err) {
         console.error(err);
-        MostrarMensagem('Erro de rede ao registrar. Verifique o CORS.', true);
+        MostrarMensagem('Erro de rede ao registrar.', true);
     }
 }
 
+// Login via AJAX (Opcional, mantido para referência)
 async function Login(e) {
     e.preventDefault();
-    const email = document.getElementById('email')?.value?.trim();
-    const senha = document.getElementById('senha')?.value;
+    const form = e.target;
+    const email = form.querySelector('#email')?.value?.trim();
+    const senha = form.querySelector('#senha')?.value;
 
     if (!email || !senha) {
         MostrarMensagem('Preencha email e senha.', true);
-        return;
-    }
-
-    // Validação de email básica
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        MostrarMensagem('Por favor, insira um email válido.', true);
         return;
     }
 
@@ -170,11 +203,10 @@ async function Login(e) {
 
             MostrarMensagem('Login realizado com sucesso.');
 
-            // Verifica se o usuário é admin
             if (json.user && (json.user.tipo_usuario === 'admin' || json.is_admin)) {
                 setTimeout(() => window.location.href = '/dashboard', 700);
             } else {
-                setTimeout(() => window.location.href = '/', 700);
+                setTimeout(() => window.location.href = '/home', 700);
             }
 
         } else {
@@ -183,210 +215,205 @@ async function Login(e) {
 
     } catch (err) {
         console.error(err);
-        MostrarMensagem('Erro de rede ao logar. Verifique o backend e CORS.', true);
+        MostrarMensagem('Erro de rede ao logar.', true);
     }
 }
 
-// // Função para verificar se usuário está logado
-// function verificarLogin() {
-//     const token = localStorage.getItem('bf_access');
-//     if (token) {
-//         // Se está na página de login e já tem token, redireciona
-//         if (window.location.pathname === '/login') {
-//             window.location.href = '/';
-//         }
+/* ==========================================================================
+   BUSCA E FILTROS
+   ========================================================================== */
 
-//         // Atualiza header para mostrar opção de logout
-//         const menu = document.querySelector('.menu');
-//         if (menu) {
-//             const loginItem = menu.querySelector('a[href="/login"]');
-//             if (loginItem) {
-//                 loginItem.textContent = 'Sair';
-//                 loginItem.href = '#';
-//                 loginItem.addEventListener('click', function (e) {
-//                     e.preventDefault();
-//                     localStorage.removeItem('bf_access');
-//                     localStorage.removeItem('bf_refresh');
-//                     window.location.href = '/';
-//                 });
-//             }
-//         }
-//     }
-// }
-
-document.addEventListener('DOMContentLoaded', () => {
-    // register form
-    if (document.getElementById('nome')) {
-        const form = document.querySelector('form');
-        form.addEventListener('submit', Registro);
-        log('Register handler attached');
-    }
-
-    // login form
-    if (document.getElementById('senha') && document.getElementById('email') && !document.getElementById('nome')) {
-        const form = document.querySelector('form');
-        form.addEventListener('submit', Login);
-        log('Login handler attached');
-        const last = localStorage.getItem('bf_last_email');
-        if (last) document.getElementById('email').value = last;
-    }
-
-    verificarLogin();
-});
-
-// ===== navegação dos selects do dashboard =====
-(function attachAdminSelectNavigation() {
-    function init() {
-        const selects = document.querySelectorAll('.admin-select');
-        selects.forEach(select => {
-            select.addEventListener('change', (e) => {
-                const url = (e.target && e.target.value) ? e.target.value.trim() : '';
-                if (!url) return;
-                console.log('[Dashboard] navegando para', url);
-                window.location.href = url;
+function configurarBusca() {
+    const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
+    
+    if (searchInput) {
+        const bookCards = document.querySelectorAll('.book-card');
+        
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase().trim();
+            
+            bookCards.forEach(card => {
+                const titulo = card.getAttribute('data-titulo') || '';
+                const categoria = card.getAttribute('data-categoria') || '';
+                const autor = card.getAttribute('data-autor') || '';
+                
+                const matches = titulo.includes(term) || categoria.includes(term) || autor.includes(term);
+                card.style.display = matches ? 'flex' : 'none';
             });
         });
-        if (selects.length === 0) console.warn('[Dashboard] nenhum .admin-select encontrado.');
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+    if (searchForm && document.querySelector('.book-grid')) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
     }
-})();
-// Função de busca em tempo real
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('search-input');
-    const bookCards = document.querySelectorAll('.book-card');
+}
 
-    searchInput.addEventListener('input', function () {
-        const searchTerm = this.value.toLowerCase().trim();
+/* ==========================================================================
+   CAPTCHA
+   ========================================================================== */
 
-        bookCards.forEach(card => {
-            const titulo = card.getAttribute('data-titulo');
-            const categoria = card.getAttribute('data-categoria');
-            const autor = card.getAttribute('data-autor');
+function configurarCaptcha() {
+    const captchaInput = document.getElementById('notrobo');
+    if (!captchaInput) return;
 
-            const matches = titulo.includes(searchTerm) ||
-                categoria.includes(searchTerm) ||
-                autor.includes(searchTerm);
-
-            if (matches || searchTerm === '') {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
+    const form = captchaInput.closest('form');
+    if (form) {
+        if (form.getAttribute('data-captcha-listener') === 'true') return;
+        
+        form.addEventListener('submit', function(e) {
+            if (!captchaInput.value.trim()) {
+                e.preventDefault();
+                MostrarMensagem('Por favor, responda a pergunta do CAPTCHA.', true);
+                captchaInput.focus();
             }
         });
-    });
-
-    // Configurar o formulário de busca para não recarregar a página
-    document.getElementById('search-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        // A busca já funciona em tempo real, então não precisa fazer nada extra
-    });
-});
-
-// Funções do modal de empréstimo
-const modal = document.getElementById('modalEmprestimo');
-
-function abrirModalEmprestimo(livroId, livroTitulo) {
-    document.getElementById('livroId').value = livroId;
-    document.getElementById('livroInfo').textContent = `Livro: ${livroTitulo}`;
-    modal.style.display = 'block';
+        form.setAttribute('data-captcha-listener', 'true');
+    }
 }
 
-function fecharModal() {
-    modal.style.display = 'none';
-    document.getElementById('formEmprestimo').reset();
-}
+/* ==========================================================================
+   INTERFACE DE USUÁRIO (UI)
+   ========================================================================== */
 
-// Fechar modal ao clicar no X
-document.querySelector('.close').addEventListener('click', fecharModal);
-
-// Fechar modal ao clicar fora dele
-window.addEventListener('click', function (event) {
-    if (event.target === modal) {
-        fecharModal();
-    }
-});
-
-// Processar formulário de empréstimo
-document.getElementById('formEmprestimo').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-    const livroId = formData.get('livro_id');
-    const usuarioId = formData.get('usuario_id');
-
-    try {
-        const response = await fetch('/emprestar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `id_livro=${livroId}&id_usuario=${usuarioId}`
-        });
-
-        if (response.ok) {
-            alert('✅ Empréstimo realizado com sucesso!');
-            fecharModal();
-        } else {
-            const error = await response.text();
-            alert('❌ Erro ao realizar empréstimo: ' + error);
-        }
-    } catch (error) {
-        alert('❌ Erro de rede: ' + error);
-    }
-});
-
-//Mostrar senha
-
-document.addEventListener("DOMContentLoaded", function () {
-  const senhaInput = document.getElementById("senha");
-  const toggleBtn = document.getElementById("toggleSenha");
-
-  if (!senhaInput || !toggleBtn) {
-    // elementos não encontrados — não quebra a página
-    console.warn("Toggle senha: elemento não encontrado (id 'senha' ou 'toggleSenha').");
-    return;
-  }
-
-  // ícones SVG (string) — olho e olho risc
-  const olho = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-  const olhoRisc = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.66 20.66 0 0 1 4.05-5.06"/><path d="M1 1l22 22"/></svg>';
-
-  // inicial: olho (já no HTML), mas vamos garantir
-  toggleBtn.innerHTML = olho;
-
-  toggleBtn.addEventListener("click", function () {
-    const isPassword = senhaInput.getAttribute("type") === "password";
-    senhaInput.setAttribute("type", isPassword ? "text" : "password");
-    toggleBtn.innerHTML = isPassword ? olhoRisc : olho;
-    toggleBtn.setAttribute("aria-label", isPassword ? "Ocultar senha" : "Mostrar senha");
-    // opcional: manter foco no input
-    senhaInput.focus();
-  });
-});
-
-// Menu Mobile
-document.addEventListener('DOMContentLoaded', function() {
+function initMobileMenu() {
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const mainNav = document.querySelector('.main-nav');
     
     if (mobileMenuBtn && mainNav) {
-        mobileMenuBtn.addEventListener('click', function() {
-            mainNav.classList.toggle('active');
+        const newBtn = mobileMenuBtn.cloneNode(true);
+        mobileMenuBtn.parentNode.replaceChild(newBtn, mobileMenuBtn);
+
+        newBtn.addEventListener('click', function() {
+            if (mainNav.style.display === 'flex') {
+                mainNav.style.display = ''; 
+                mainNav.classList.remove('active');
+            } else {
+                mainNav.style.display = 'flex';
+                mainNav.style.flexDirection = 'column';
+                mainNav.style.position = 'absolute';
+                mainNav.style.top = '80px';
+                mainNav.style.left = '0';
+                mainNav.style.width = '100%';
+                mainNav.style.backgroundColor = 'white';
+                mainNav.style.padding = '20px';
+                mainNav.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                mainNav.classList.add('active');
+            }
+        });
+        
+        mainNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mainNav.style.display = ''; 
+            });
         });
     }
-    
-    // Fechar menu ao clicar em um link (mobile)
-    const navLinks = document.querySelectorAll('.nav-link, .btn-logout');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            mainNav.classList.remove('active');
+}
+
+function configurarSenhaToggle() {
+    const senhaInput = document.getElementById("senha");
+    const toggleBtn = document.getElementById("toggleSenha");
+
+    if (!senhaInput || !toggleBtn) return;
+
+    const newToggle = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(newToggle, toggleBtn);
+
+    const olho = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const olhoRisc = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.66 20.66 0 0 1 4.05-5.06"/><path d="M1 1l22 22"/></svg>';
+
+    newToggle.innerHTML = olho;
+
+    newToggle.addEventListener("click", function () {
+        const isPassword = senhaInput.getAttribute("type") === "password";
+        senhaInput.setAttribute("type", isPassword ? "text" : "password");
+        newToggle.innerHTML = isPassword ? olhoRisc : olho;
+    });
+}
+
+function configurarNavegacaoAdmin() {
+    const selects = document.querySelectorAll('.admin-select');
+    if (selects.length === 0) return;
+
+    selects.forEach(select => {
+        select.addEventListener('change', (e) => {
+            const url = e.target.value;
+            if (url) window.location.href = url;
         });
     });
-});
+}
 
+/* ==========================================================================
+   MODAIS
+   ========================================================================== */
 
+window.abrirModalEmprestimo = function(livroId, livroTitulo) {
+    const modal = document.getElementById('modalEmprestimo');
+    const idInput = document.getElementById('livroId');
+    const infoText = document.getElementById('livroInfo');
+
+    if (modal && idInput && infoText) {
+        idInput.value = livroId;
+        infoText.textContent = `Livro: ${livroTitulo}`;
+        modal.style.display = 'flex';
+    }
+};
+
+window.fecharModal = function() {
+    const modal = document.getElementById('modalEmprestimo');
+    if (modal) {
+        modal.style.display = 'none';
+        const form = document.getElementById('formEmprestimo');
+        if (form) form.reset();
+    }
+};
+
+window.onclick = function(event) {
+    const modal = document.getElementById('modalEmprestimo');
+    if (modal && event.target === modal) {
+        window.fecharModal();
+    }
+};
+
+const formEmprestimo = document.getElementById('formEmprestimo');
+if (formEmprestimo) {
+    formEmprestimo.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        try {
+            const response = await fetch('/emprestar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (response.ok) {
+                alert('✅ Operação realizada com sucesso!');
+                window.fecharModal();
+                window.location.reload();
+            } else {
+                const error = await response.text();
+                if (error.includes('<!DOCTYPE html>')) {
+                    alert('❌ Ocorreu um erro no servidor.');
+                } else {
+                    alert('❌ Erro: ' + error);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            alert('❌ Erro de rede.');
+        }
+    });
+}

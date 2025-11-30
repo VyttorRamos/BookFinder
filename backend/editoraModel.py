@@ -24,6 +24,10 @@ def ListarEditoras():
             conn.close()
 
 def CadastrarEditora(nome, endereco=None, telefone=None, email=None):
+    # Validação básica antes de tentar conectar
+    if not nome:
+        return False, "O nome da editora é obrigatório!"
+
     conn = None
     cursor = None
     try:
@@ -73,6 +77,9 @@ def PegaEditoraPorId(id_editora):
             conn.close()
 
 def AtualizarEditora(id_editora, nome, endereco=None, telefone=None, email=None):
+    if not nome:
+        return False, "O nome da editora é obrigatório!"
+
     conn = None
     cursor = None
     try:

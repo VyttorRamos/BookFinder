@@ -1,41 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Home - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
+    
+    <!-- Link para CSS externo (caso exista), mas o estilo abaixo garante o visual -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
 
-<body>
     <style>
-        /* --- IDENTIDADE VISUAL (Moderna) --- */
+        /* ==========================================================================
+           ESTILOS GLOBAIS E DE COMPONENTES (EMBUTIDO PARA GARANTIA DE VISUAL)
+           ========================================================================== */
         :root {
-            --primary: #f59e0b;
-            /* Amber-500 */
-            --primary-dark: #d97706;
-            --secondary: #1e293b;
-            /* Slate-800 */
-            --text-main: #334155;
-            /* Slate-700 */
-            --text-light: #64748b;
-            /* Slate-500 */
-            --bg-light: #f8fafc;
-            /* Slate-50 */
+            --primary: #f59e0b;       /* Laranja Principal */
+            --primary-dark: #d97706;  /* Laranja Escuro */
+            --secondary: #1e293b;     /* Azul Escuro (Slate) */
+            --text-main: #334155;     /* Texto Principal */
+            --text-light: #64748b;    /* Texto Secundário */
+            --bg-light: #f8fafc;      /* Fundo Claro */
             --white: #ffffff;
+            --success: #16a34a;       /* Verde Sucesso */
+            --danger: #dc2626;        /* Vermelho Erro */
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
             --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: var(--font-main);
@@ -47,25 +42,22 @@
             flex-direction: column;
         }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-            transition: color 0.2s;
-        }
+        a { text-decoration: none; color: inherit; transition: 0.2s ease; }
+        ul { list-style: none; }
 
-        /* --- HEADER 100% BRANCO --- */
+        /* --- HEADER (100% BRANCO) --- */
         .app-header {
-            background-color: var(--white);
+            background-color: var(--white) !important;
             border-bottom: 1px solid #e2e8f0;
             height: 80px;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
             display: flex;
             align-items: center;
             box-shadow: var(--shadow-sm);
         }
-
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -76,60 +68,51 @@
             align-items: center;
         }
 
-        /* Logo */
+        /* LOGO */
         .logo {
             display: flex;
             align-items: center;
             gap: 10px;
             font-family: var(--font-serif);
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: var(--secondary);
-            margin-right: 20px;
+            cursor: pointer;
         }
-
         .logo-icon {
             background-color: var(--primary);
             color: white;
-            padding: 6px;
+            padding: 8px;
             border-radius: 8px;
             display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
 
-        .icon {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            stroke-width: 2;
-            fill: none;
-        }
-
-        /* MENU DE NAVEGAÇÃO (Links Escuros em Fundo Branco) */
+        /* NAVEGAÇÃO PRINCIPAL */
         .main-nav {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             align-items: center;
+            background-color: transparent !important;
             margin-left: auto;
-            /* Empurra para a direita */
-            margin-right: 30px;
+            margin-right: 20px;
         }
-
+        
         .nav-link {
             font-weight: 700;
             font-size: 0.85rem;
-            color: var(--text-light);
-            /* Cinza escuro para contraste */
+            color: var(--text-light) !important;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 8px 0;
             position: relative;
         }
-
-        .nav-link:hover {
-            color: var(--primary);
-        }
-
-        /* Efeito de linha ao passar o mouse */
+        
+        .nav-link:hover { color: var(--primary) !important; }
+        
+        /* Linha animada no hover */
         .nav-link::after {
             content: '';
             position: absolute;
@@ -140,14 +123,19 @@
             background-color: var(--primary);
             transition: width 0.3s;
         }
+        .nav-link:hover::after { width: 100%; }
 
-        .nav-link:hover::after {
-            width: 100%;
+        /* Link Especial Admin */
+        .nav-link.admin-link {
+            color: var(--secondary) !important;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        /* Botão Sair */
+        /* BOTÃO SAIR */
         .btn-logout {
-            color: #ef4444;
+            color: var(--danger) !important;
             font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -157,15 +145,14 @@
             transition: all 0.2s;
             background-color: #fff;
         }
-
-        .btn-logout:hover {
-            background-color: #ef4444;
-            color: white;
-            border-color: #ef4444;
-            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
+        .btn-logout:hover { 
+            background-color: var(--danger) !important; 
+            color: white !important;
+            border-color: var(--danger);
+            box-shadow: var(--shadow-sm);
         }
 
-        /* Menu Mobile */
+        /* MENU MOBILE */
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -174,7 +161,7 @@
             color: var(--text-main);
         }
 
-        /* --- CONTEÚDO PRINCIPAL --- */
+        /* --- CONTEÚDO --- */
         main {
             padding: 40px 20px;
             max-width: 1200px;
@@ -187,31 +174,48 @@
             font-family: var(--font-serif);
             font-size: 2.5rem;
             color: var(--secondary);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            text-align: center;
         }
-
-        main>p {
+        
+        main > p {
+            text-align: center;
             color: var(--text-light);
+            margin-bottom: 50px;
             font-size: 1.1rem;
-            margin-bottom: 40px;
-            max-width: 700px;
         }
 
-        /* Barra de Busca */
+        /* MENSAGENS FLASH */
+        .flash-container {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+        }
+        .flash-message {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .flash-message.success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .flash-message.error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* --- BARRA DE BUSCA --- */
         .search-container {
-            margin-bottom: 50px;
+            margin-bottom: 60px;
             background: var(--white);
-            padding: 20px;
+            padding: 30px;
             border-radius: 16px;
             box-shadow: var(--shadow-sm);
             border: 1px solid #e2e8f0;
         }
-
         #search-form {
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            justify-content: center;
+            max-width: 700px;
+            margin: 0 auto;
         }
-
         #search-input {
             flex: 1;
             padding: 14px 20px;
@@ -221,17 +225,13 @@
             outline: none;
             transition: border-color 0.3s;
         }
-
-        #search-input:focus {
-            border-color: var(--primary);
-        }
-
-        button[type="submit"],
-        .btn-primary {
+        #search-input:focus { border-color: var(--primary); }
+        
+        button[type="submit"] {
             background-color: var(--secondary);
             color: white;
             border: none;
-            padding: 0 25px;
+            padding: 0 30px;
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
@@ -240,30 +240,29 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            height: 50px;
-            text-decoration: none;
+            height: 52px;
+            font-size: 1rem;
         }
+        button[type="submit"]:hover { background-color: #0f172a; }
 
-        button[type="submit"]:hover,
-        .btn-primary:hover {
-            background-color: #0f172a;
-        }
-
-        /* Grade de Livros */
+        /* --- SEÇÃO DE LIVROS (CARD) --- */
+        .book-section { margin-bottom: 60px; }
+        
         .book-section h2 {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: var(--secondary);
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
             gap: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
         }
 
         .book-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 30px;
-            margin-bottom: 60px;
         }
 
         .book-card {
@@ -271,36 +270,35 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: var(--shadow-sm);
-            border: 1px solid #f1f5f9;
+            border: 1px solid #e2e8f0;
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
         }
-
         .book-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-lg);
         }
 
         .book-card-image {
-            height: 200px;
-            background-color: #f1f5f9;
+            height: 240px;
+            background-color: #f8fafc;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
+            border-bottom: 1px solid #e2e8f0;
         }
-
         .book-card-image img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Mostra a capa inteira */
+            padding: 10px;
+            transition: transform 0.3s;
         }
-
-        .book-placeholder {
-            font-size: 3rem;
-            color: #cbd5e1;
-        }
+        .book-card:hover .book-card-image img { transform: scale(1.05); }
+        .book-placeholder { font-size: 3rem; color: #cbd5e1; }
 
         .book-card-info {
             padding: 20px;
@@ -308,30 +306,24 @@
             display: flex;
             flex-direction: column;
         }
-
         .book-card-info h3 {
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--secondary);
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             line-height: 1.3;
+            min-height: 2.6em;
         }
 
-        .book-author {
+        .info-row {
+            margin-bottom: 6px;
+            font-size: 0.85rem;
             color: var(--text-light);
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-
-        .book-meta {
-            margin-top: auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 0.8rem;
-            color: var(--text-light);
         }
+        .info-row strong { color: var(--text-main); font-weight: 600; margin-right: 5px;}
 
         .tag {
             background-color: #fffbeb;
@@ -339,193 +331,167 @@
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
         }
 
+        /* BOTÃO EMPRESTAR */
         .btn-emprestar {
             width: 100%;
-            padding: 10px;
-            background-color: var(--primary);
+            padding: 12px;
+            background-color: var(--success);
             color: white;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s;
+            margin-top: 15px; /* Empurra para o fundo */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .btn-emprestar:hover { background-color: #15803d; box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2); }
+
+        /* --- SEÇÃO DE RECOMENDAÇÃO (IA) --- */
+        .recommended-section {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 60px;
+        }
+        .recommended-section h2 {
+            color: #15803d;
+            border-bottom-color: #bbf7d0;
         }
 
-        .btn-emprestar:hover {
-            background-color: var(--primary-dark);
+        /* --- BANNER API --- */
+        .feature-card {
+            background: linear-gradient(135deg, var(--secondary) 0%, #334155 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 60px 0;
+            box-shadow: var(--shadow-lg);
         }
+        .feature-card h3 { color: white; margin-bottom: 15px; font-size: 1.8rem; }
+        .feature-card p { color: #cbd5e1; margin-bottom: 30px; font-size: 1.1rem; }
+        .feature-card .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feature-card .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
 
-        /* Modal */
+        /* --- MODAL DE EMPRÉSTIMO --- */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 2000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(15, 23, 42, 0.6);
+            background-color: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(4px);
             align-items: center;
             justify-content: center;
         }
-
         .modal-content {
             background-color: var(--white);
             margin: auto;
-            padding: 30px;
+            padding: 40px;
             border-radius: 16px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             position: relative;
+            animation: modalFadeIn 0.3s ease-out;
         }
-
+        @keyframes modalFadeIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
         .close {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            color: #94a3b8;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
+            position: absolute; right: 20px; top: 20px;
+            color: #94a3b8; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;
+            transition: color 0.2s;
         }
-
-        .close:hover {
-            color: var(--secondary);
+        .close:hover { color: var(--danger); }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary); }
+        select { 
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; 
+            font-size: 1rem; background: white; outline: none; transition: border-color 0.2s;
         }
+        select:focus { border-color: var(--primary); }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-actions { display: flex; gap: 10px; margin-top: 30px; }
+        .form-actions button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-confirm { background-color: var(--primary); color: white; }
+        .btn-confirm:hover { background-color: var(--primary-dark); }
+        .btn-cancel { background-color: #f1f5f9; color: var(--text-main); }
+        .btn-cancel:hover { background-color: #e2e8f0; }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--secondary);
-        }
-
-        select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-
-        .form-actions button {
-            flex: 1;
-        }
-
-        .btn-secondary {
-            background-color: #f1f5f9;
-            color: var(--text-main);
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-secondary:hover {
-            background-color: #e2e8f0;
-        }
-
-        .feature-card {
-            background: linear-gradient(135deg, var(--secondary) 0%, #334155 100%);
-            color: white;
-            padding: 40px;
-            border-radius: 16px;
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        .feature-card h3 {
-            color: white;
-            margin-bottom: 10px;
-            font-size: 1.5rem;
-        }
-
-        .feature-card p {
-            color: #cbd5e1;
-            margin-bottom: 25px;
-        }
-
-        .feature-card .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .feature-card .btn-primary:hover {
-            background-color: var(--primary-dark);
-        }
-
+        /* --- ESTADOS VAZIOS --- */
         .no-books {
-            text-align: center;
-            padding: 60px;
-            background-color: var(--white);
-            border-radius: 16px;
-            border: 1px dashed #cbd5e1;
+            text-align: center; padding: 60px;
+            background-color: var(--white); border-radius: 16px; border: 2px dashed #e2e8f0;
         }
 
-        .no-books p {
-            margin-bottom: 20px;
+        /* --- FOOTER --- */
+        footer {
+            background-color: var(--white);
+            border-top: 1px solid #e2e8f0;
+            padding: 40px 20px;
+            margin-top: auto;
+            text-align: center;
             color: var(--text-light);
         }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .footer-links li a { color: var(--text-light); font-weight: 500; font-size: 0.9rem; }
+        .footer-links li a:hover { color: var(--primary); text-decoration: none; }
 
-        /* Responsividade */
+        /* --- RESPONSIVIDADE --- */
         @media (max-width: 900px) {
-            .main-nav {
-                display: none;
-            }
-
-            /* Oculta menu em telas pequenas (ideal adicionar menu hamburguer) */
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .container {
-                padding: 15px;
-            }
-
-            .app-header {
-                height: auto;
-                padding: 15px 0;
-            }
-
-            .search-container #search-form {
-                flex-direction: column;
-            }
-
-            .search-container button {
-                width: 100%;
-            }
+            .main-nav { display: none; }
+            .mobile-menu-btn { display: block; }
+            .container { padding: 0 15px; }
+            .app-header { height: auto; padding: 15px 0; }
+            #search-form { flex-direction: column; }
+            #search-form button { width: 100%; }
+            .footer-links { flex-direction: column; gap: 10px; }
         }
     </style>
-    <!-- HEADER CONSISTENTE -->
+</head>
+
+<body>
+    <!-- HEADER -->
     <header class="app-header">
         <div class="container">
             <a href="{{ url_for('home') }}" class="logo">
                 <div class="logo-icon">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 </div>
                 BookFinder
             </a>
-
+            
             <nav class="main-nav">
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
@@ -535,9 +501,7 @@
 
                 {% if user_type == 'admin' %}
                 <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
-                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
+                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                     ADMIN
                 </a>
                 {% endif %}
@@ -547,75 +511,180 @@
             </nav>
 
             <button class="mobile-menu-btn">
-                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
+                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
         </div>
     </header>
 
     <main>
-        <h1>Bem-vindo, {{ user_name }}!</h1>
-
-        <!-- Seção de Livros Recomendados -->
-        <section class="recommended-section">
-            <h2>Livros Recomendados para Você</h2>
-            <div class="recomendacao-placeholder">
-                <p>Em breve, você verá aqui livros recomendados baseados no seu perfil de leitura.</p>
-                <!-- Espaço reservado para implementação futura da lógica de recomendação -->
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-container">
+              {% for category, message in messages %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+              {% endfor %}
             </div>
-        </section>
+          {% endif %}
+        {% endwith %}
 
-        <!-- Seção de Livros Cadastrados -->
-        <section class="all-books-section">
-            <h2>Explore Nosso Acervo</h2>
-            {% if livros %}
-            <div class="livros-grid">
-                {% for livro in livros %}
-                <div class="livro-card">
-                    <div class="livro-image">
+        <h1>Bem-vindo, {{ user_name }}!</h1>
+        <p>Explore nosso catálogo e descubra novas leituras para todos os gostos.</p>
+
+        <!-- Barra de Busca -->
+        <div class="search-container">
+            <form id="search-form">
+                <input type="text" id="search-input" placeholder="Busque por título, autor ou categoria...">
+                <button type="submit">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    Buscar
+                </button>
+            </form>
+        </div>
+
+        <!-- 1. SEÇÃO DE RECOMENDAÇÕES (IA) -->
+        {% if recomendacoes %}
+        <section class="book-section recommended-section">
+            <h2>
+                <svg class="icon" style="color: #15803d;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                Recomendados para Você
+            </h2>
+            <div class="book-grid">
+                {% for livro in recomendacoes %}
+                <div class="book-card" data-titulo="{{ livro.titulo.lower() }}">
+                    <div class="book-card-image">
                         {% if livro.capa %}
-                        <img src="{{ url_for('static', filename='uploads/' + livro.capa) }}" alt="{{ livro.titulo }}">
+                            <img src="{{ livro.capa if 'http' in livro.capa else url_for('static', filename='uploads/' + livro.capa) }}" alt="{{ livro.titulo }}">
                         {% else %}
-                        <div class="capa-placeholder">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            </svg>
-                        </div>
+                            <div class="book-placeholder">📖</div>
                         {% endif %}
                     </div>
-                    <div class="livro-info">
+                    <div class="book-card-info">
                         <h3>{{ livro.titulo }}</h3>
-                        <p><strong>ISBN:</strong> {{ livro.isbn or 'Não informado' }}</p>
-                        <p><strong>Ano:</strong> {{ livro.ano_publicacao or 'Não informado' }}</p>
-                        <p><strong>Categoria:</strong> {{ livro.categoria_nome or 'Não informada' }}</p>
-                        <p><strong>Editora:</strong> {{ livro.editora_nome or 'Não informada' }}</p>
+                        <div class="info-row"><strong>Autor:</strong> {{ livro.autor or '-' }}</div>
+                        <div class="info-row"><strong>Editora:</strong> {{ livro.editora_nome or '-' }}</div>
+                        <div class="info-row"><strong>Motivo:</strong> Baseado no seu histórico</div>
+                        
+                        <button class="btn-emprestar" onclick="abrirModalEmprestimo('{{ livro.id_livro }}', '{{ livro.titulo }}')">
+                            <svg class="icon" style="width:18px;" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            Emprestar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- 2. SEÇÃO DE TODOS OS LIVROS -->
+        <section class="book-section">
+            <h2>
+                <svg class="icon" style="color: var(--primary);" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Acervo Completo
+            </h2>
+            
+            {% if livros %}
+            <div class="book-grid">
+                {% for livro in livros %}
+                <div class="book-card" 
+                     data-titulo="{{ livro.titulo.lower() }}" 
+                     data-categoria="{{ livro.categoria_nome.lower() if livro.categoria_nome else '' }}"
+                     data-autor="{{ livro.autor.lower() if livro.autor else '' }}">
+                    
+                    <div class="book-card-image">
+                        {% if livro.capa %}
+                            <img src="{{ livro.capa if 'http' in livro.capa else url_for('static', filename='uploads/' + livro.capa) }}" alt="{{ livro.titulo }}">
+                        {% else %}
+                            <div class="book-placeholder">📖</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="book-card-info">
+                        <h3>{{ livro.titulo }}</h3>
+                        
+                        <div class="info-row">
+                            <strong>ISBN:</strong> {{ livro.isbn or 'N/A' }}
+                        </div>
+                        <div class="info-row">
+                            <strong>Ano:</strong> {{ livro.ano_publicacao or 'N/A' }}
+                        </div>
+                        <div class="info-row">
+                            <strong>Categoria:</strong> 
+                            {% if livro.categoria_nome %}
+                                <span class="tag">{{ livro.categoria_nome }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+                        <div class="info-row">
+                            <strong>Editora:</strong> {{ livro.editora_nome or '-' }}
+                        </div>
+                        
+                        <!-- BOTÃO EMPRESTAR -->
+                        <button class="btn-emprestar" 
+                                onclick="abrirModalEmprestimo('{{ livro.id_livro }}', '{{ livro.titulo }}')">
+                            <svg class="icon" style="width: 18px; height: 18px;" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            Emprestar
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="no-livros">
-                <p>Nenhum livro cadastrado no momento.</p>
+            <div class="no-books">
+                <p>Ainda não há livros cadastrados.</p>
+                {% if user_type == 'admin' %}
+                <a href="{{ url_for('cadastrarlivro') }}" class="btn-emprestar" style="width: auto; display: inline-flex; background-color: var(--secondary);">
+                    Cadastrar Primeiro Livro
+                </a>
+                {% endif %}
             </div>
             {% endif %}
         </section>
+
+        <!-- BANNER API -->
         <div class="feature-card">
             <h3>Não encontrou o que procura?</h3>
-            <p>Explore milhares de livros online usando a integração com Google Books API</p>
-            <a href="{{ url_for('buscar_livros') }}" class="btn-primary">
+            <p>Explore milhares de livros online via Google Books API.</p>
+            <a href="{{ url_for('buscar_livros') }}" class="btn-primary" style="color:white">
                 Buscar na Nuvem
-                <svg class="icon" viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
+                <svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </a>
+        </div>
+
+        <!-- MODAL DE EMPRÉSTIMO -->
+        <div id="modalEmprestimo" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModal()">&times;</span>
+                <h3 style="margin-bottom: 20px; color: var(--secondary); font-size: 1.5rem;">Realizar Empréstimo</h3>
+                <p id="livroInfo" style="margin-bottom: 20px; color: var(--text-light); font-weight: 500;"></p>
+                
+                <form id="formEmprestimo" action="{{ url_for('emprestar') }}" method="POST">
+                    <!-- Campo oculto com ID do livro -->
+                    <input type="hidden" id="livroId" name="id_livro">
+                    
+                    <div class="form-group">
+                        <label for="usuarioSelect">Selecione o usuário:</label>
+                        <select id="usuarioSelect" name="id_usuario" required>
+                            <option value="">Selecione um usuário...</option>
+                            {% for usuario in usuarios %}
+                            <option value="{{ usuario.id_usuario }}">
+                                {{ usuario.nome_completo }} - {{ usuario.email }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-confirm">Confirmar Empréstimo</button>
+                        <button type="button" class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </main>
 
-    <!-- FOOTER CONSISTENTE -->
+    <!-- FOOTER -->
     <footer>
         <div class="container">
             <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
@@ -627,7 +696,90 @@
             </ul>
         </div>
     </footer>
-</body>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
+    <!-- SCRIPTS (Embutidos para evitar cache e erros de carregamento) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[BookFinder] Home carregada.');
+            
+            // Scripts do Modal
+            window.abrirModalEmprestimo = function(id, titulo) {
+                const modal = document.getElementById("modalEmprestimo");
+                const infoText = document.getElementById("livroInfo");
+                const idInput = document.getElementById("livroId");
+
+                if (modal && infoText && idInput) {
+                    infoText.innerHTML = "Livro selecionado: <strong>" + titulo + "</strong>";
+                    idInput.value = id;
+                    modal.style.display = "flex";
+                }
+            }
+
+            window.fecharModal = function() {
+                const modal = document.getElementById("modalEmprestimo");
+                if (modal) modal.style.display = "none";
+            }
+
+            // Fechar ao clicar fora
+            window.onclick = function(e) {
+                const modal = document.getElementById("modalEmprestimo");
+                if (e.target == modal) fecharModal();
+            }
+
+            // Busca em tempo real (Filtro JS)
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const term = this.value.toLowerCase().trim();
+                    const cards = document.querySelectorAll('.book-card');
+
+                    cards.forEach(card => {
+                        // Pega dados dos atributos data- ou do texto visível
+                        const title = card.getAttribute('data-titulo') || card.innerText.toLowerCase();
+                        const category = card.getAttribute('data-categoria') || '';
+                        
+                        if (title.includes(term) || category.includes(term)) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Previne reload no submit da busca local
+                const searchForm = document.getElementById('search-form');
+                if (searchForm) {
+                    searchForm.addEventListener('submit', e => e.preventDefault());
+                }
+            }
+
+            // Menu Mobile Toggle
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            const mainNav = document.querySelector('.main-nav');
+            if (menuBtn && mainNav) {
+                menuBtn.addEventListener('click', () => {
+                    if (mainNav.style.display === 'flex') {
+                        mainNav.style.display = 'none';
+                    } else {
+                        mainNav.style.display = 'flex';
+                        mainNav.style.flexDirection = 'column';
+                        mainNav.style.position = 'absolute';
+                        mainNav.style.top = '80px';
+                        mainNav.style.left = '0';
+                        mainNav.style.width = '100%';
+                        mainNav.style.background = 'white';
+                        mainNav.style.padding = '20px';
+                        mainNav.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                    }
+                });
+            }
+            
+            // Fechar mensagens flash automaticamente
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.flash-message');
+                alerts.forEach(a => a.style.display = 'none');
+            }, 5000);
+        });
+    </script>
+</body>
 </html>

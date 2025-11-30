@@ -6,9 +6,139 @@
     <title>Listar Empréstimos - BookFinder</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/BookFinderIcon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* --- REUTILIZANDO O CSS DA HOME PARA CONSISTÊNCIA --- */
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --secondary: #1e293b;
+            --text-main: #334155;
+            --text-light: #64748b;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; transition: color 0.2s; }
+
+        /* --- HEADER --- */
+        .app-header {
+            background-color: var(--white);
+            border-bottom: 1px solid #e2e8f0;
+            height: 80px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex; align-items: center; gap: 10px;
+            font-family: Georgia, serif; font-size: 1.4rem; font-weight: bold; color: var(--secondary);
+        }
+        .logo-icon {
+            background-color: var(--primary); color: white; padding: 6px; border-radius: 8px; display: flex;
+        }
+        .icon { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+        .main-nav { display: flex; gap: 25px; align-items: center; margin-left: auto; margin-right: 30px; }
+        .nav-link { font-weight: 700; font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-link:hover { color: var(--primary); }
+        .btn-logout { color: var(--danger); font-weight: 700; font-size: 0.85rem; border: 1px solid #fee2e2; padding: 8px 20px; border-radius: 50px; }
+        .btn-logout:hover { background-color: var(--danger); color: white; }
+        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; }
+
+        /* --- TABELA E CONTEÚDO --- */
+        main { padding: 40px 20px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
+        
+        h1 { font-family: Georgia, serif; font-size: 2.2rem; color: var(--secondary); margin-bottom: 10px; }
+        main > p { color: var(--text-light); margin-bottom: 30px; }
+
+        .table-container {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        
+        th {
+            background-color: #f8fafc;
+            color: var(--secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #f8fafc; }
+
+        /* Badges de Status */
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
+        .status-ativo { background-color: #dbeafe; color: #1e40af; }
+        .status-devolvido { background-color: #dcfce7; color: #166534; }
+        .status-atrasado { background-color: #fee2e2; color: #991b1b; }
+
+        /* Botões de Ação */
+        .action-btn { padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin-right: 5px; display: inline-block; }
+        .btn-renovar { background-color: var(--primary); color: white; }
+        .btn-devolver { background-color: var(--secondary); color: white; }
+        .btn-renovar:hover, .btn-devolver:hover { opacity: 0.9; }
+
+        /* Flash Messages */
+        .flash-message { padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        
+        .no-data { text-align: center; padding: 40px; color: var(--text-light); }
+        .btn-create { background-color: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: inline-block; margin-top: 10px;}
+
+        @media (max-width: 900px) {
+            .main-nav { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+    </style>
 </head>
 <body>
-    <!-- HEADER CONSISTENTE -->
+    <!-- HEADER -->
     <header class="app-header">
         <div class="container">
             <a href="{{ url_for('home') }}" class="logo">
@@ -22,100 +152,87 @@
                 <a href="{{ url_for('home') }}" class="nav-link">INÍCIO</a>
                 <a href="{{ url_for('generos') }}" class="nav-link">GÊNEROS</a>
                 <a href="{{ url_for('buscar_livros') }}" class="nav-link">BUSCAR LIVROS</a>
-                <a href="{{ url_for('sobre') }}" class="nav-link">SOBRE</a>
-                <a href="{{ url_for('contato') }}" class="nav-link">CONTATO</a>
                 
                 {% if user_type == 'admin' %}
-                <a href="{{ url_for('dashboard') }}" class="nav-link admin-link">
-                    <svg class="icon" style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                    ADMIN
-                </a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link" style="color: var(--secondary);">ADMIN</a>
                 {% endif %}
                 
                 <a href="{{ url_for('logout') }}" class="btn-logout">SAIR</a>
             </nav>
 
             <button class="mobile-menu-btn">
-                <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg class="icon" style="width: 30px;" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
         </div>
     </header>
     
     <main>
-        <h1>Empréstimos Ativos</h1>
-        <p>Gerencie os empréstimos do sistema</p>
-        
         <!-- Mensagens Flash -->
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="flash-messages">
-                    {% for message in messages %}
-                        <div class="flash-message">{{ message }}</div>
-                    {% endfor %}
-                </div>
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
+
+        <h1>Empréstimos Ativos</h1>
+        <p>Gerencie os empréstimos registrados no sistema.</p>
         
         <div class="table-container">
             {% if emprestimos %}
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Livro</th>
-                            <th>Usuário</th>
-                            <th>Data Empréstimo</th>
-                            <th>Data Devolução Prevista</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for emprestimo in emprestimos %}
-                        <tr>
-                            <td>{{ emprestimo.id_emprestimo }}</td>
-                            <td>{{ emprestimo.titulo }}</td>
-                            <td>{{ emprestimo.nome_completo }}</td>
-                            <td>{{ emprestimo.data_emprestimo.strftime('%d/%m/%Y') }}</td>
-                            <td>{{ emprestimo.data_devolucao_prevista.strftime('%d/%m/%Y') }}</td>
-                            <td>
-                                <span class="status-{{ emprestimo.status }}">
-                                    {{ emprestimo.status|title }}
-                                </span>
-                            </td>
-                            <td class="action-buttons">
-                                <a href="{{ url_for('renovar', id=emprestimo.id_emprestimo) }}" class="btn-edit">Renovar</a>
-                                <a href="{{ url_for('devolverlivro', id=emprestimo.id_emprestimo) }}" class="btn-delete">Devolver</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Livro</th>
+                        <th>Usuário</th>
+                        <th>Data Empréstimo</th>
+                        <th>Devolução Prevista</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emprestimo in emprestimos %}
+                    <tr>
+                        <td>#{{ emprestimo.id_emprestimo }}</td>
+                        <td><strong>{{ emprestimo.titulo }}</strong></td>
+                        <td>{{ emprestimo.nome_completo }}</td>
+                        <!-- CORREÇÃO DAS DATAS: dt_emprestimo e dt_devolucao_prevista -->
+                        <td>{{ emprestimo.dt_emprestimo.strftime('%d/%m/%Y') if emprestimo.dt_emprestimo else '-' }}</td>
+                        <td>{{ emprestimo.dt_devolucao_prevista.strftime('%d/%m/%Y') if emprestimo.dt_devolucao_prevista else '-' }}</td>
+                        <td>
+                            <span class="status-badge status-{{ emprestimo.status }}">
+                                {{ emprestimo.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if emprestimo.status == 'ativo' or emprestimo.status == 'atrasado' %}
+                            <a href="{{ url_for('renovar', id=emprestimo.id_emprestimo) }}" class="action-btn btn-renovar">Renovar</a>
+                            <a href="{{ url_for('devolverlivro', id=emprestimo.id_emprestimo) }}" class="action-btn btn-devolver">Devolver</a>
+                            {% else %}
+                            <span style="color: #94a3b8; font-size: 0.85rem;">Finalizado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
-            <div class="no-books">
-                <p>Nenhum empréstimo ativo no momento.</p>
-                <a href="{{ url_for('emprestar') }}" class="btn-primary">Realizar Primeiro Empréstimo</a>
+            <div class="no-data">
+                <p>Nenhum empréstimo encontrado.</p>
+                <a href="{{ url_for('emprestar') }}" class="btn-create">Realizar Novo Empréstimo</a>
             </div>
             {% endif %}
         </div>
     </main>
 
-    <!-- FOOTER CONSISTENTE -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
-            <ul class="footer-links">
-                <li><a href="{{ url_for('sobre') }}">Sobre</a></li>
-                <li><a href="{{ url_for('contato') }}">Contato</a></li>
-                <li><a href="{{ url_for('privacidade') }}">Privacidade</a></li>
-                <li><a href="{{ url_for('termos') }}">Termos</a></li>
-            </ul>
-        </div>
+    <!-- FOOTER -->
+    <footer style="text-align: center; padding: 40px; color: var(--text-light); border-top: 1px solid #e2e8f0; margin-top: auto; background: white;">
+        <p>&copy; 2024 BookFinder. Todos os direitos reservados.</p>
     </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>
