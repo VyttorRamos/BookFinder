@@ -9,6 +9,9 @@ import random
 import requests
 from werkzeug.utils import secure_filename
 
+# --- IMPORTAÇÃO DA IA (Corrigida para pasta IA) ---
+from IA.recommender_bridge import obter_recomendacoes, carregar_modelo
+
 # Importação dos modelos
 from userModel import (CadastroUser, PegaUserPorEmail, VerificaLoginUsuario, ListarUsuarios, PegaUserPorId, AtualizarUsuario, DeletarUsuario, AtualizaHashSenha)
 from livroModel import (ListarLivros, CadastrarLivro, PegaLivroPorId, AtualizarLivro, DeletarLivro, VerificarDisponibilidade)
@@ -142,6 +145,29 @@ def api_buscar_livros():
         
     except Exception as e:
         return jsonify({"error": f"Erro na busca: {str(e)}"}), 500
+
+# --- ROTA DE RECOMENDAÇÃO (IA INTEGRADA) ---
+@app.route("/api/recomendacoes")
+@active_user_required
+def api_recomendacoes():
+    """
+    Endpoint que o Frontend chama para pedir sugestões personalizadas.
+    """
+    try:
+        user_id = session.get('user_id')
+        
+        # Chama a função inteligente da pasta IA
+        recomendacoes = obter_recomendacoes(user_id)
+        
+        # Retorna os dados em JSON para o Frontend
+        return jsonify({
+            "status": "success", 
+            "recomendacoes": recomendacoes if recomendacoes else []
+        })
+    except Exception as e:
+        print(f"[ERRO IA] Falha ao buscar recomendações: {e}")
+        # Em caso de erro, retorna lista vazia para não quebrar o site
+        return jsonify({"status": "success", "recomendacoes": []})
 
 # --- ROTAS PRINCIPAIS ---
 
@@ -1212,6 +1238,17 @@ def route_login():
         "is_admin": is_admin
     }), 200
 
+# --- INICIALIZAÇÃO DO SERVIDOR E IA ---
 if __name__ == "__main__":
+    print("--- INICIANDO SISTEMA BOOKFINDER ---")
+    
+    # Tentativa de carregar o modelo de IA
+    try:
+        print("Carregando cérebro da IA (Datasets)...")
+        carregar_modelo() 
+    except Exception as e:
+        print(f"AVISO: A IA não pôde ser carregada: {e}")
+        print("O sistema continuará funcionando, mas sem recomendações personalizadas.")
+
     port = int(os.environ.get("PORT", 5000))
     app.run(host="127.0.0.1", port=port, debug=True)
