@@ -258,6 +258,7 @@ def login():
     )
 
 # --- PERFIL DO USUÁRIO ---
+# --- PERFIL DO USUÁRIO ---
 @app.route("/perfil")
 @active_user_required
 def perfil():
@@ -268,48 +269,79 @@ def perfil():
         flash('Erro ao carregar perfil', 'error')
         return redirect(url_for('home'))
     
-    # Buscar empréstimos ativos do usuário
-    ok_emprestimos, emprestimos_ativos = ListarEmprestimosPorUsuario(user_id)
+    # DEBUG: Log para verificar
+    print(f"[DEBUG] Buscando empréstimos para usuário {user_id}")
+    
+    # Buscar empréstimos ativos do usuário (apenas 'ativo' e 'atrasado')
+    ok_emprestimos, emprestimos_todos = ListarEmprestimosPorUsuario(user_id)
+    
+    if ok_emprestimos:
+        # Filtrar apenas empréstimos ativos/atrasados (não devolvidos)
+        emprestimos_ativos = [e for e in emprestimos_todos if e.get('status_emprestimo') in ['ativo', 'atrasado']]
+        print(f"[DEBUG] Empréstimos ativos encontrados: {len(emprestimos_ativos)}")
+    else:
+        emprestimos_ativos = []
     
     # Buscar multas pendentes do usuário
     ok_multas, multas_pendentes = ListarMultasPorUsuario(user_id)
+    
+    print(f"[DEBUG] Resultado multas: ok={ok_multas}, count={len(multas_pendentes) if ok_multas else 0}")
     
     return render_template('perfil.html',
                          user_type=session.get('user_type'),
                          user_name=session.get('user_name'),
                          user_email=session.get('user_email'),
                          usuario=usuario,
-                         emprestimos_ativos=emprestimos_ativos if ok_emprestimos else [],
+                         emprestimos_ativos=emprestimos_ativos,
                          multas_pendentes=multas_pendentes if ok_multas else [])
 
 @app.route("/atualizar-perfil", methods=["POST"])
 @active_user_required
 def atualizar_perfil():
     user_id = session['user_id']
-    nome_completo = request.form['nome_completo']
-    email = request.form['email']
-    telefone = request.form.get('telefone', '')
-    senha_atual = request.form.get('senha_atual', '')
-    nova_senha = request.form.get('nova_senha', '')
+    nome_completo = request.form.get('nome_completo', '').strip()
+    email = request.form.get('email', '').strip()
+    telefone = request.form.get('telefone', '').strip()
+    senha_atual = request.form.get('senha_atual', '').strip()
+    nova_senha = request.form.get('nova_senha', '').strip()
+    confirmar_senha = request.form.get('confirmar_senha', '').strip()
+    
+    # Validações básicas
+    if not nome_completo or not email:
+        flash('Nome e email são obrigatórios', 'error')
+        return redirect(url_for('perfil'))
+    
+    # Verificar se email já existe para outro usuário
+    ok, usuario_atual = PegaUserPorId(user_id)
+    if not ok:
+        flash('Erro ao buscar usuário', 'error')
+        return redirect(url_for('perfil'))
     
     # Atualizar informações básicas
     ok, message = AtualizarUsuario(user_id, nome_completo, email, telefone, session.get('user_type'))
     
     if not ok:
-        flash('Erro ao atualizar perfil: ' + message, 'error')
+        flash(f'Erro ao atualizar perfil: {message}', 'error')
         return redirect(url_for('perfil'))
     
     # Atualizar senha se fornecida
     if senha_atual and nova_senha:
+        if nova_senha != confirmar_senha:
+            flash('Nova senha e confirmação não coincidem', 'error')
+            return redirect(url_for('perfil'))
+        
         # Verificar senha atual
-        usuario = PegaUserPorEmail(email)
-        if usuario and VerificaSenha(usuario['senha'], senha_atual):
-            # Atualizar senha
-            nova_hash = SenhaHash(nova_senha)
-            AtualizaHashSenha(user_id, nova_hash)
+        ok_login, res = VerificaLoginUsuario(usuario_atual['email'], senha_atual)
+        if not ok_login:
+            flash('Senha atual incorreta!', 'error')
+            return redirect(url_for('perfil'))
+        
+        # Atualizar senha
+        nova_hash = SenhaHash(nova_senha)
+        if AtualizaHashSenha(user_id, nova_hash):
             flash('Senha atualizada com sucesso!', 'success')
         else:
-            flash('Senha atual incorreta!', 'error')
+            flash('Erro ao atualizar senha', 'error')
     
     # Atualizar sessão
     session['user_name'] = nome_completo

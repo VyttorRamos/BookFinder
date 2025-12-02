@@ -51,6 +51,16 @@
     </header>
     
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
         <h1>Meu Perfil</h1>
         <p>Gerencie suas informações pessoais</p>
         
@@ -85,14 +95,14 @@
             <div class="profile-actions">
                 <div class="action-card">
                     <h3>Informações Pessoais</h3>
-                    <form action="{{ url_for('atualizar_perfil') }}" method="POST" class="contact-form">
+                    <form action="{{ url_for('atualizar_perfil') }}" method="POST" class="contact-form" onsubmit="return validarFormulario()">
                         <div class="form-group">
-                            <label for="nome_completo">Nome Completo</label>
+                            <label for="nome_completo">Nome Completo *</label>
                             <input type="text" id="nome_completo" name="nome_completo" value="{{ user_name }}" required>
                         </div>
                         
                         <div class="form-group">
-                            <label for="email">Email</label>
+                            <label for="email">Email *</label>
                             <input type="email" id="email" name="email" value="{{ user_email }}" required>
                         </div>
                         
@@ -102,7 +112,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="senha_atual">Senha Atual (para alterar senha)</label>
+                            <label for="senha_atual">Senha Atual (apenas para alterar senha)</label>
                             <input type="password" id="senha_atual" name="senha_atual" placeholder="Digite sua senha atual">
                         </div>
                         
@@ -130,11 +140,57 @@
                         <div class="emprestimo-item">
                             <div class="livro-info">
                                 <h4>{{ emprestimo.titulo }}</h4>
-                                <p>Data de empréstimo: {{ emprestimo.data_emprestimo }}</p>
-                                <p>Data de devolução: {{ emprestimo.data_devolucao }}</p>
+                                <p><strong>Data de empréstimo:</strong> 
+                                    {% if emprestimo.dt_emprestimo %}
+                                        {{ emprestimo.dt_emprestimo.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                                <p><strong>Data de devolução prevista:</strong> 
+                                    {% if emprestimo.dt_prevista_devolucao %}
+                                        {{ emprestimo.dt_prevista_devolucao.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                                {% if emprestimo.dt_devolucao %}
+                                <p><strong>Devolvido em:</strong> {{ emprestimo.dt_devolucao.strftime('%d/%m/%Y') }}</p>
+                                {% endif %}
                             </div>
                             <div class="emprestimo-status">
+                                {% if emprestimo.status_emprestimo == 'ativo' %}
                                 <span class="status-ativo">Ativo</span>
+                                {% elif emprestimo.status_emprestimo == 'atrasado' %}
+                                <span class="status-atrasado">Atrasado</span>
+                                {% elif emprestimo.status_emprestimo == 'devolvido' %}
+                                <span class="status-devolvido">Devolvido</span>
+                                {% else %}
+                                <span class="status-outro">{{ emprestimo.status_emprestimo|title }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if multas_pendentes %}
+                <div class="action-card">
+                    <h3>Multas Pendentes</h3>
+                    <div class="multas-list">
+                        {% for multa in multas_pendentes %}
+                        <div class="multa-item">
+                            <div class="multa-info">
+                                <h4>{{ multa.titulo or 'Livro não especificado' }}</h4>
+                                <p><strong>Valor:</strong> R$ {{ "%.2f"|format(multa.valor) }}</p>
+                                <p><strong>Data:</strong> {{ multa.dt_criacao.strftime('%d/%m/%Y') if multa.dt_criacao else 'N/A' }}</p>
+                                {% if multa.dias_atraso %}
+                                <p><strong>Dias de atraso:</strong> {{ multa.dias_atraso }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="multa-status">
+                                <span class="status-pendente">Pendente</span>
                             </div>
                         </div>
                         {% endfor %}
@@ -158,5 +214,33 @@
         </div>
     </footer>
 </body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+function validarFormulario() {
+    const senhaAtual = document.getElementById('senha_atual').value;
+    const novaSenha = document.getElementById('nova_senha').value;
+    const confirmarSenha = document.getElementById('confirmar_senha').value;
+    
+    // Se preencher algum campo de senha, todos devem ser preenchidos
+    if (senhaAtual || novaSenha || confirmarSenha) {
+        if (!senhaAtual || !novaSenha || !confirmarSenha) {
+            alert('Para alterar a senha, preencha todos os campos de senha.');
+            return false;
+        }
+        
+        if (novaSenha !== confirmarSenha) {
+            alert('A nova senha e a confirmação não coincidem.');
+            return false;
+        }
+        
+        if (novaSenha.length < 6) {
+            alert('A nova senha deve ter pelo menos 6 caracteres.');
+            return false;
+        }
+    }
+    
+    return true;
+}
+</script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

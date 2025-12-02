@@ -290,72 +290,6 @@ def RenovarEmprestimo(id_emprestimo):
             cursor.close()
             conn.close()
 
-def DevolverLivro(id_emprestimo):
-    try:
-        conn = DBConexao()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Obter configurações do sistema
-        config = ObterConfiguracoesEmprestimo()
-        
-        # 1. Pegar dados do empréstimo
-        cursor.execute("""
-            SELECT e.*, c.id_livro, c.id_copia 
-            FROM emprestimos e
-            JOIN copias c ON e.id_copia = c.id_copia
-            WHERE e.id_emprestimo = %s
-        """, (id_emprestimo,))
-        emprestimo = cursor.fetchone()
-        
-        if not emprestimo:
-            return False, "Empréstimo não encontrado."
-            
-        if emprestimo['status_emprestimo'] == 'devolvido':
-            return False, "Este livro já foi devolvido."
-
-        dt_devolucao = datetime.now()
-        
-        # 2. Atualizar o empréstimo
-        cursor.execute("""
-            UPDATE emprestimos 
-            SET dt_devolucao = %s, status_emprestimo = 'devolvido' 
-            WHERE id_emprestimo = %s
-        """, (dt_devolucao, id_emprestimo))
-
-        # 3. Atualizar status da cópia para disponível
-        cursor.execute("""
-            UPDATE copias SET status_copia = 'disponivel' 
-            WHERE id_copia = %s
-        """, (emprestimo['id_copia'],))
-
-        # 4. Atualizar quantidade disponível do livro
-        cursor.execute("""
-            UPDATE livros 
-            SET quantidade_disponivel = quantidade_disponivel + 1 
-            WHERE id_livro = %s
-        """, (emprestimo['id_livro'],))
-
-        # 5. Verificar se há atraso e aplicar multa se necessário
-        if dt_devolucao > emprestimo['dt_prevista_devolucao']:
-            dias_atraso = (dt_devolucao - emprestimo['dt_prevista_devolucao']).days
-            valor_multa = dias_atraso * config['multa_por_dia']
-            
-            cursor.execute("""
-                INSERT INTO multas 
-                (id_emprestimo, id_usuario, valor, dias_atraso, status_multa, dt_criacao) 
-                VALUES (%s, %s, %s, %s, 'pendente', %s)
-            """, (id_emprestimo, emprestimo['id_usuario'], valor_multa, dias_atraso, dt_devolucao))
-
-        conn.commit()
-        return True, "Livro devolvido com sucesso!"
-        
-    except mysql.connector.Error as err:
-        conn.rollback()
-        return False, f"Erro ao devolver livro: {err}"
-    finally:
-        if conn and conn.is_connected():
-            cursor.close()
-            conn.close()
 
 def ListarAtrasados():
     try:
@@ -391,30 +325,120 @@ def ListarAtrasados():
             cursor.close()
             conn.close()
 
-def ListarEmprestimosPorUsuario(id_usuario):
+def ListarEmprestimosPorUsuario(id_usuario: int):
     try:
         conn = DBConexao()
         cursor = conn.cursor(dictionary=True)
         sql = """
             SELECT 
-                e.id_emprestimo, 
-                l.titulo, 
-                e.dt_emprestimo, 
+                e.id_emprestimo,
+                e.dt_emprestimo,
                 e.dt_prevista_devolucao,
                 e.dt_devolucao,
                 e.status_emprestimo,
-                DATEDIFF(CURDATE(), e.dt_prevista_devolucao) as dias_atraso
+                e.renovado,
+                l.titulo,
+                l.id_livro,
+                c.cod_interno
             FROM emprestimos e
             JOIN copias c ON e.id_copia = c.id_copia
             JOIN livros l ON c.id_livro = l.id_livro
             WHERE e.id_usuario = %s 
+            AND e.status_emprestimo != 'cancelado'
             ORDER BY e.dt_emprestimo DESC
         """
         cursor.execute(sql, (id_usuario,))
         emprestimos = cursor.fetchall()
         return True, emprestimos
+    except Error as err:
+        print(f"[ListarEmprestimosPorUsuario] ERRO: {err}")
+        return False, f"Erro ao listar empréstimos: {err}"
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def DevolverLivro(id_emprestimo: int):
+    conn = None
+    try:
+        conn = DBConexao()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Primeiro, pega as informações do empréstimo
+        cursor.execute("""
+            SELECT e.id_copia, e.id_usuario, e.dt_prevista_devolucao, c.id_livro 
+            FROM emprestimos e
+            JOIN copias c ON e.id_copia = c.id_copia
+            WHERE e.id_emprestimo = %s
+        """, (id_emprestimo,))
+        emprestimo = cursor.fetchone()
+        
+        if not emprestimo:
+            return False, "Empréstimo não encontrado"
+        
+        id_copia = emprestimo['id_copia']
+        id_usuario = emprestimo['id_usuario']
+        id_livro = emprestimo['id_livro']
+        
+        # Calcular dias de atraso se houver
+        dias_atraso = 0
+        cursor.execute("SELECT NOW() as data_atual")
+        data_atual = cursor.fetchone()['data_atual']
+        
+        if emprestimo['dt_prevista_devolucao'] and data_atual > emprestimo['dt_prevista_devolucao']:
+            from datetime import datetime
+            dt_prevista = emprestimo['dt_prevista_devolucao']
+            if isinstance(dt_prevista, str):
+                dt_prevista = datetime.strptime(dt_prevista, '%Y-%m-%d %H:%M:%S')
+            
+            dias_atraso = (data_atual - dt_prevista).days
+        
+        # Atualiza o empréstimo para devolvido
+        sql_emprestimo = """
+            UPDATE emprestimos 
+            SET status_emprestimo = 'devolvido', 
+                dt_devolucao = NOW() 
+            WHERE id_emprestimo = %s
+        """
+        cursor.execute(sql_emprestimo, (id_emprestimo,))
+        
+        # Atualiza a cópia para disponível
+        sql_copia = """
+            UPDATE copias 
+            SET status_copia = 'disponivel' 
+            WHERE id_copia = %s
+        """
+        cursor.execute(sql_copia, (id_copia,))
+        
+        # Atualiza a quantidade disponível do livro
+        cursor.execute("""
+            UPDATE livros 
+            SET quantidade_disponivel = quantidade_disponivel + 1 
+            WHERE id_livro = %s
+        """, (id_livro,))
+        
+        # Se houver atraso, criar multa
+        if dias_atraso > 0:
+            # Buscar valor da multa por dia
+            cursor.execute("SELECT valor FROM configuracoes WHERE chave = 'multa_por_dia'")
+            config = cursor.fetchone()
+            valor_multa_por_dia = float(config['valor']) if config else 2.00
+            
+            valor_multa = dias_atraso * valor_multa_por_dia
+            
+            sql_multa = """
+                INSERT INTO multas (id_emprestimo, id_usuario, valor, status_multa, dias_atraso, dt_criacao)
+                VALUES (%s, %s, %s, 'pendente', %s, NOW())
+            """
+            cursor.execute(sql_multa, (id_emprestimo, id_usuario, valor_multa, dias_atraso))
+        
+        conn.commit()
+        return True, "Livro devolvido com sucesso"
     except Exception as e:
-        return False, f"Erro ao buscar empréstimos do usuário: {str(e)}"
+        if conn:
+            conn.rollback()
+        print(f"[DevolverLivro] ERRO: {e}")
+        return False, f"Erro ao devolver livro: {e}"
     finally:
         if conn and conn.is_connected():
             cursor.close()
