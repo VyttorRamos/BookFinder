@@ -9,8 +9,9 @@ Permite pesquisar por título/autor, visualizar capas e detalhes, e organizar re
 
 - 📌 HTML  
 - 🎨 CSS  
-- 💻 JavaScript  
-- 🧠 API de pesquisa de livros (ex: Google Books API)
+- 💻 JavaScript
+- 🐍 Python
+- 🧠 API de pesquisa de livros (Google Books API)
 
 ---
 
@@ -21,12 +22,7 @@ Permite pesquisar por título/autor, visualizar capas e detalhes, e organizar re
 ✔ Layout responsivo e intuitivo  
 ✔ Tratamento de erros de busca  
 ✔ Interface interativa com botões e feedback visual
-
----
-
-## 📷 Visualização
-
-> (adicione prints aqui — você pode usar imagens da interface do projeto)
+✔ Recomendações inteligentes de livros
 
 ---
 
