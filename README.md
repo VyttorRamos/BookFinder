@@ -1,20 +1,37 @@
-# 📚 BookFinder: Um sistema de recomendação de livros para uma biblioteca acadêmica.
+# 📚 BookFinder
 
-Bem-vindo ao **BookFinder**, um projeto desenvolvido por estudantes do SENAI Felix Guisard🎯  
-Este repositório faz parte do curso de **Análise e Desenvolvimento de Sistemas** e tem como objetivo integrar  as disciplinas de: **FrontEnd, BackEnd, IA e Redes**! 
-
----
-
-## 🧩 Sobre o Projeto
-
-O **BookFinder** é um sistema em desenvolvimento que permite:
-
-- 👤 **Cadastro e autenticação de usuários** (com Argon2 para hash de senha);
-- 🔍 **Busca e gerenciamento de livros** (em breve);
-- 🧱 **Conexão com banco de dados MySQL** via módulo `mysql.connector`;
-- ⚙️ **Estrutura modular**, facilitando futuras expansões e manutenção.
-
-Atualmente, o foco está no **Na integração da IA de recomendação** com testes locais.
+**BookFinder** é uma aplicação web completa para busca e visualização de livros utilizando APIs externas.  
+Permite pesquisar por título/autor, visualizar capas e detalhes, e organizar resultados de forma intuitiva.
 
 ---
 
+## 🧠 Tecnologias Utilizadas
+
+- 📌 HTML  
+- 🎨 CSS  
+- 💻 JavaScript  
+- 🧠 API de pesquisa de livros (ex: Google Books API)
+
+---
+
+## 🚀 Funcionalidades
+
+✔ Busca de livros por termo (título, autor, ISBN)  
+✔ Exibição de capa, título, autor e ano de publicação  
+✔ Layout responsivo e intuitivo  
+✔ Tratamento de erros de busca  
+✔ Interface interativa com botões e feedback visual
+
+---
+
+## 📷 Visualização
+
+> (adicione prints aqui — você pode usar imagens da interface do projeto)
+
+---
+
+## 🧑‍💻 Como usar
+
+1. Clone o repositório:
+```sh
+git clone https://github.com/VyttorRamos/BookFinder.git
